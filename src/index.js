@@ -2,6 +2,9 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import TelegramBot from 'node-telegram-bot-api';
+import dotenv from 'dotenv';
+
+dotenv.config(); // Загружаем переменные из .env
 
 const app = express();
 const PORT = process.env.PORT || 92;
@@ -12,11 +15,31 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../public/')));
 app.use(express.json()); // Парсинг JSON из POST-запросов
 
-// Ваш Telegram токен и ID чата
-const TELEGRAM_BOT_TOKEN = '7484310340:AAF14G-DsRVf0zBYeY66n_S3DlhLprYYLJE';
-const CHAT_ID = '238274847';
+// Ваш Telegram токен теперь загружается из .env
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
+
+// Функция отправки кнопки "Получить температуру"
+const sendTemperatureButton = (chatId) => {
+  bot.sendMessage(chatId, "Нажмите кнопку, чтобы получить температуру:", {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Получить температуру', callback_data: 'get_temperature' }]
+      ]
+    }
+  });
+};
+
+// Обработчик новых сообщений
+bot.on('message', (msg) => {
+  const chatId = msg.chat.id;
+
+  // Отправка кнопки "Получить температуру" при любом новом сообщении
+  if (msg.text && !msg.reply_to_message) {
+    sendTemperatureButton(chatId);
+  }
+});
 
 app.post('/update-values', (req, res) => {
   const temperatureData = req.body;
@@ -29,21 +52,11 @@ app.post('/update-values', (req, res) => {
   res.send('Данные успешно получены.');
 });
 
-bot.onText(/\/start/, (msg) => {
-  bot.sendMessage(msg.chat.id, "Привет! Нажмите на кнопку, чтобы получить температуру.", {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: 'Получить температуру', callback_data: 'get_temperature' }]
-      ]
-    }
-  });
-});
-
-// Обработка нажатия на кнопку
 bot.on('callback_query', (query) => {
   const chatId = query.message.chat.id;
+  const action = query.data;
 
-  if (query.data === 'get_temperature') {
+  if (action === 'get_temperature') {
     const temperatureData = app.locals.temperatureData;
 
     if (temperatureData) {
