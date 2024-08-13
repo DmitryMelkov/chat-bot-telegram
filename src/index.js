@@ -3,8 +3,9 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
+import { HttpsProxyAgent } from 'https-proxy-agent';
 
-dotenv.config(); // Загружаем переменные из .env
+dotenv.config(); // Загружаем переменные из.env
 
 const app = express();
 const PORT = process.env.PORT || 92;
@@ -15,19 +16,26 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../public/')));
 app.use(express.json()); // Парсинг JSON из POST-запросов
 
-// Ваш Telegram токен теперь загружается из .env
+// Ваш Telegram токен теперь загружается из.env
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
-const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, { polling: true });
+// Настройки прокси
+const proxyUrl = 'http://169.254.0.51:3274';
+const proxyAgent = new HttpsProxyAgent(proxyUrl);
+
+const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
+  polling: true,
+  request: {
+    agent: proxyAgent,
+  },
+});
 
 // Функция отправки кнопки "Получить температуру"
 const sendTemperatureButton = (chatId) => {
-  bot.sendMessage(chatId, "Нажмите кнопку, чтобы получить температуру:", {
+  bot.sendMessage(chatId, 'Нажмите кнопку, чтобы получить температуру:', {
     reply_markup: {
-      inline_keyboard: [
-        [{ text: 'Получить температуру', callback_data: 'get_temperature' }]
-      ]
-    }
+      inline_keyboard: [[{ text: 'Получить температуру', callback_data: 'get_temperature' }]],
+    },
   });
 };
 
@@ -60,7 +68,13 @@ bot.on('callback_query', (query) => {
     const temperatureData = app.locals.temperatureData;
 
     if (temperatureData) {
-      bot.sendMessage(chatId, `Температура 1: ${temperatureData.temperatureValue1}\nТемпература 2: ${temperatureData.temperatureValue2}\nТемпература 3: ${temperatureData.temperatureValue3}`);
+      const table = `
+      Текущие параметры температуры
+      1-СК     |      ${temperatureData.temperatureValue1}
+      2-СК     |      ${temperatureData.temperatureValue2}
+      3-СК     |      ${temperatureData.temperatureValue3}
+      `;
+      bot.sendMessage(chatId, table, { parse_mode: 'HTML' });
     } else {
       bot.sendMessage(chatId, 'Нет данных для отображения.');
     }
