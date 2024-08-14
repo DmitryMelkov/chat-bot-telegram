@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import { HttpsProxyAgent } from 'https-proxy-agent';
+import { log } from 'console';
 
 dotenv.config(); // Загружаем переменные из.env
 
@@ -44,22 +45,34 @@ bot.on('message', (msg) => {
   const chatId = msg.chat.id;
 
   // Отправка кнопки "Получить температуру" при любом новом сообщении
-  if (msg.text && !msg.reply_to_message) {
+  if (msg.text &&!msg.reply_to_message) {
     sendTemperatureButton(chatId);
   }
 });
 
+// Обработчик POST-запросов на обновление значений температуры
 app.post('/update-values', (req, res) => {
   const temperatureData = req.body;
+  const key = Object.keys(temperatureData)[0];
+  const value = temperatureData[key];
+
+  if (!app.locals.temperatureData) {
+    app.locals.temperatureData = {
+      'Температура 1-СК': null,
+      'Температура 2-СК': null,
+      'Температура 3-СК': null,
+    };
+  }
 
   console.log('Полученные данные:', temperatureData);
-
-  // Сохранение данных на сервере, вместо отправки их сразу в Telegram
-  app.locals.temperatureData = temperatureData;
+  app.locals.temperatureData[key] = value;
 
   res.send('Данные успешно получены.');
 });
 
+
+
+// Обработчик callback-запросов на получение температуры
 bot.on('callback_query', (query) => {
   const chatId = query.message.chat.id;
   const action = query.data;
@@ -70,16 +83,19 @@ bot.on('callback_query', (query) => {
     if (temperatureData) {
       const table = `
       Текущие параметры температуры
-      1-СК     |      ${temperatureData.temperatureValue1}
-      2-СК     |      ${temperatureData.temperatureValue2}
-      3-СК     |      ${temperatureData.temperatureValue3}
+      1-СК     |     ${'\u2705'} ${temperatureData['Температура 1-СК']}°C
+      2-СК     |     ${'\u2705'} ${temperatureData['Температура 2-СК']}°C
+      3-СК     |     ${'\u2705'} ${temperatureData['Температура 3-СК']}°C
       `;
+      console.log('Отправка данных в Telegram:', temperatureData);
       bot.sendMessage(chatId, table, { parse_mode: 'HTML' });
     } else {
       bot.sendMessage(chatId, 'Нет данных для отображения.');
     }
   }
 });
+
+
 
 // Запуск сервера
 app.listen(PORT, () => {

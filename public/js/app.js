@@ -1,7 +1,7 @@
 const temperatureData = {
-  temperatureValue1: null,
-  temperatureValue2: null,
-  temperatureValue3: null,
+  temperature1: null,
+  temperature2: null,
+  temperature3: null,
 };
 
 const sendDataToServer = (data) => {
@@ -25,19 +25,17 @@ window.addEventListener('message', (event) => {
 
   const message = event.data;
   const temperatureTypes = {
-    temperatureValue1: 'temperatureValue1',
-    temperatureValue2: 'temperatureValue2',
-    temperatureValue3: 'temperatureValue3',
+    temperature1: 'Температура 1-СК',
+    temperature2: 'Температура 2-СК',
+    temperature3: 'Температура 3-СК',
   };
 
   if (temperatureTypes[message.type]) {
     if (message.value !== null) {
-      // Обновляем объект с температурными значениями
-      temperatureData[temperatureTypes[message.type]] = message.value;
-      console.log(`Обновлено ${temperatureTypes[message.type]}:`, temperatureData[temperatureTypes[message.type]]);
-
-      // Отправляем обновленные данные на сервер
-      sendDataToServer(temperatureData);
+      const dataToSend = {};
+      dataToSend[temperatureTypes[message.type]] = message.value;
+      console.log('Отправка данных на сервер:', dataToSend); // Добавьте логирование
+      sendDataToServer(dataToSend);
     }
   }
 });
