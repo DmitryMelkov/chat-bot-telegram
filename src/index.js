@@ -30,11 +30,36 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
   },
 });
 
-// Функция отправки кнопки "Получить температуру"
-const sendTemperatureButton = (chatId) => {
-  bot.sendMessage(chatId, 'Нажмите кнопку, чтобы получить текущие параметры:', {
+// Функция отправки кнопки "Производство Карбон"
+const sendProductionButton = (chatId) => {
+  bot.sendMessage(chatId, 'Выберите опцию:', {
     reply_markup: {
-      inline_keyboard: [[{ text: 'Текущие параметры', callback_data: 'get_temperature' }]],
+      inline_keyboard: [[{ text: 'Производство Карбон', callback_data: 'production_carbon' }]],
+    },
+  });
+};
+
+// Функция отправки кнопок "Печь карбонизации 1" и "Печь карбонизации 2"
+const sendFurnaceButtons = (chatId) => {
+  bot.sendMessage(chatId, 'Выберите печь карбонизации:', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Печь карбонизации 1', callback_data: 'furnace_1' }],
+        [{ text: 'Печь карбонизации 2', callback_data: 'furnace_2' }],
+        [{ text: 'Назад', callback_data: 'back_to_production' }],
+      ],
+    },
+  });
+};
+
+// Функция отправки кнопок "Текущие параметры" и "Назад"
+const sendFurnace1Menu = (chatId) => {
+  bot.sendMessage(chatId, 'Меню Печь карбонизации 1:', {
+    reply_markup: {
+      inline_keyboard: [
+        [{ text: 'Текущие параметры', callback_data: 'get_temperature' }],
+        [{ text: 'Назад', callback_data: 'production_carbon' }],
+      ],
     },
   });
 };
@@ -43,9 +68,9 @@ const sendTemperatureButton = (chatId) => {
 bot.on('message', (msg) => {
   const chatId = msg.chat.id;
 
-  // Отправка кнопки "Получить температуру" при любом новом сообщении
+  // Отправка кнопки "Производство Карбон" при любом новом сообщении
   if (msg.text && !msg.reply_to_message) {
-    sendTemperatureButton(chatId);
+    sendProductionButton(chatId);
   }
 });
 
@@ -86,31 +111,46 @@ bot.on('callback_query', (query) => {
 
     if (data) {
       const table = `
-Текущие параметры
+Текущие параметры Печь карбонизации №1
 \n
 Температуры:
-Температура 1-СК  |  ${data['Температура 1-СК']} °C
-Температура 2-СК  |  ${data['Температура 2-СК']} °C
-Температура 3-СК  |  ${data['Температура 3-СК']} °C
+1-СК:  ${data['Температура 1-СК']} °C
+2-СК:  ${data['Температура 2-СК']} °C
+3-СК:  ${data['Температура 3-СК']} °C
 \n
 Давления:
-Давление в топке печи   |  ${data['Давление в топке печи']} кгс/м2
-Давление газов после скруббера   |  ${data['Давление газов после скруббера']} кгс/м2
+В топке печи:  ${data['Давление в топке печи']} кгс/м2
+Газов после скруббера:  ${data['Давление газов после скруббера']} кгс/м2
 \n
 Разрежения:
-Разрежение в пространстве котла утилизатора   |   ${data['Разрежение в пространстве котла утилизатора']} кгс/см2
-Разрежение низ загрузочной камеры   |   ${data['Разрежение низ загрузочной камеры']} кгс/см2
+В котле утилизаторе:   ${data['Разрежение в пространстве котла утилизатора']} кгс/см2
+Низ загрузочной камеры:   ${data['Разрежение низ загрузочной камеры']} кгс/см2
 \n
 Уровни:
-Уровень в ванне скруббера   |   ${data['Уровень в ванне скруббера']} мм
-Уровень воды в емкости ХВО   |   ${data['Уровень воды в емкости ХВО']} мм
-Уровень воды в барабане котла   |   ${data['Уровень воды в барабане котла']} мм
+В ванне скруббера:   ${data['Уровень в ванне скруббера']} мм
+В емкости ХВО:   ${data['Уровень воды в емкости ХВО']} мм
+В барабане котла:   ${data['Уровень воды в барабане котла']} мм
       `;
       console.log('Отправка данных в Telegram:', data);
-      bot.sendMessage(chatId, table, { parse_mode: 'HTML' });
+      bot.sendMessage(chatId, table, {
+        parse_mode: 'HTML',
+        reply_markup: {
+          inline_keyboard: [[{ text: 'Назад', callback_data: 'furnace_1' }]],
+        },
+      });
     } else {
-      bot.sendMessage(chatId, 'Нет данных для отображения.');
+      bot.sendMessage(chatId, 'Нет данных для отображения.', {
+        reply_markup: {
+          inline_keyboard: [[{ text: 'Назад', callback_data: 'furnace_1' }]],
+        },
+      });
     }
+  } else if (action === 'production_carbon') {
+    sendFurnaceButtons(chatId);
+  } else if (action === 'furnace_1') {
+    sendFurnace1Menu(chatId);
+  } else if (action === 'back_to_production') {
+    sendProductionButton(chatId);
   }
 });
 
