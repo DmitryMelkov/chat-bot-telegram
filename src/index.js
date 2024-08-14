@@ -30,36 +30,23 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
   },
 });
 
-// Функция отправки кнопки "Производство Карбон"
-const sendProductionButton = (chatId) => {
-  bot.sendMessage(chatId, 'Выберите опцию:', {
+// Функция для отправки сообщения с кнопками
+const sendMessageWithButtons = (chatId, text, buttons) => {
+  bot.sendMessage(chatId, text, {
     reply_markup: {
-      inline_keyboard: [[{ text: 'Производство Карбон', callback_data: 'production_carbon' }]],
+      inline_keyboard: buttons,
     },
   });
 };
 
-// Функция отправки кнопок "Печь карбонизации 1" и "Печь карбонизации 2"
-const sendFurnaceButtons = (chatId) => {
-  bot.sendMessage(chatId, 'Выберите печь карбонизации:', {
+// Функция для редактирования сообщения с кнопками
+const editMessageWithButtons = (chatId, messageId, text, buttons) => {
+  bot.editMessageText(text, {
+    chat_id: chatId,
+    message_id: messageId,
+    parse_mode: 'HTML',
     reply_markup: {
-      inline_keyboard: [
-        [{ text: 'Печь карбонизации 1', callback_data: 'furnace_1' }],
-        [{ text: 'Печь карбонизации 2', callback_data: 'furnace_2' }],
-        [{ text: 'Назад', callback_data: 'back_to_production' }],
-      ],
-    },
-  });
-};
-
-// Функция отправки кнопок "Текущие параметры" и "Назад"
-const sendFurnace1Menu = (chatId) => {
-  bot.sendMessage(chatId, 'Меню Печь карбонизации 1:', {
-    reply_markup: {
-      inline_keyboard: [
-        [{ text: 'Текущие параметры', callback_data: 'get_temperature' }],
-        [{ text: 'Назад', callback_data: 'production_carbon' }],
-      ],
+      inline_keyboard: buttons,
     },
   });
 };
@@ -70,7 +57,9 @@ bot.on('message', (msg) => {
 
   // Отправка кнопки "Производство Карбон" при любом новом сообщении
   if (msg.text && !msg.reply_to_message) {
-    sendProductionButton(chatId);
+    sendMessageWithButtons(chatId, 'Выберите опцию:', [
+      [{ text: 'Производство Карбон', callback_data: 'production_carbon' }],
+    ]);
   }
 });
 
@@ -82,6 +71,7 @@ app.post('/update-values', (req, res) => {
 
   if (!app.locals.data) {
     app.locals.data = {
+      'Режим работы печи:': null,
       'Температура 1-СК': null,
       'Температура 2-СК': null,
       'Температура 3-СК': null,
@@ -105,13 +95,28 @@ app.post('/update-values', (req, res) => {
 bot.on('callback_query', (query) => {
   const chatId = query.message.chat.id;
   const action = query.data;
+  const currentTime = new Date().toLocaleString();
+  const data = app.locals.data;
+
+  const buttons = {
+    furnace_1: [
+      [{ text: 'Текущие параметры', callback_data: 'get_temperature' }],
+      [{ text: 'Назад', callback_data: 'production_carbon' }],
+    ],
+    production_carbon: [
+      [{ text: 'Печь карбонизации 1', callback_data: 'furnace_1' }],
+      [{ text: 'Печь карбонизации 2', callback_data: 'furnace_2' }],
+      [{ text: 'Назад', callback_data: 'back_to_production' }],
+    ],
+    back_to_production: [[{ text: 'Производство Карбон', callback_data: 'production_carbon' }]],
+  };
 
   if (action === 'get_temperature') {
-    const data = app.locals.data;
-
-    if (data) {
-      const table = `
+    const table = data
+      ? `
 Текущие параметры Печь карбонизации №1
+\n
+Режим работы печи: ${data['Режим работы печи:']}
 \n
 Температуры:
 1-СК:  ${data['Температура 1-СК']} °C
@@ -130,27 +135,18 @@ bot.on('callback_query', (query) => {
 В ванне скруббера:   ${data['Уровень в ванне скруббера']} мм
 В емкости ХВО:   ${data['Уровень воды в емкости ХВО']} мм
 В барабане котла:   ${data['Уровень воды в барабане котла']} мм
-      `;
-      console.log('Отправка данных в Telegram:', data);
-      bot.sendMessage(chatId, table, {
-        parse_mode: 'HTML',
-        reply_markup: {
-          inline_keyboard: [[{ text: 'Назад', callback_data: 'furnace_1' }]],
-        },
-      });
-    } else {
-      bot.sendMessage(chatId, 'Нет данных для отображения.', {
-        reply_markup: {
-          inline_keyboard: [[{ text: 'Назад', callback_data: 'furnace_1' }]],
-        },
-      });
-    }
-  } else if (action === 'production_carbon') {
-    sendFurnaceButtons(chatId);
-  } else if (action === 'furnace_1') {
-    sendFurnace1Menu(chatId);
-  } else if (action === 'back_to_production') {
-    sendProductionButton(chatId);
+\n
+Обновлено: ${currentTime}
+      `
+      : 'Нет данных для отображения.';
+
+    editMessageWithButtons(chatId, query.message.message_id, table, [
+      [{ text: 'Назад', callback_data: 'furnace_1' }],
+      [{ text: 'Обновить данные', callback_data: 'get_temperature' }],
+    ]);
+  } else {
+    const buttonSet = buttons[action] || buttons.back_to_production;
+    sendMessageWithButtons(chatId, 'Выберите опцию:', buttonSet);
   }
 });
 
