@@ -4,9 +4,8 @@ import { fileURLToPath } from 'url';
 import TelegramBot from 'node-telegram-bot-api';
 import dotenv from 'dotenv';
 import { HttpsProxyAgent } from 'https-proxy-agent';
-import { log } from 'console';
 
-dotenv.config(); // Загружаем переменные из.env
+dotenv.config(); // Загружаем переменные из .env
 
 const app = express();
 const PORT = process.env.PORT || 92;
@@ -17,7 +16,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../public/')));
 app.use(express.json()); // Парсинг JSON из POST-запросов
 
-// Ваш Telegram токен теперь загружается из.env
+// Ваш Telegram токен теперь загружается из .env
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 
 // Настройки прокси
@@ -45,57 +44,75 @@ bot.on('message', (msg) => {
   const chatId = msg.chat.id;
 
   // Отправка кнопки "Получить температуру" при любом новом сообщении
-  if (msg.text &&!msg.reply_to_message) {
+  if (msg.text && !msg.reply_to_message) {
     sendTemperatureButton(chatId);
   }
 });
 
-// Обработчик POST-запросов на обновление значений температуры
+// Обработчик POST-запросов на обновление значений параметров
 app.post('/update-values', (req, res) => {
-  const temperatureData = req.body;
-  const key = Object.keys(temperatureData)[0];
-  const value = temperatureData[key];
+  const data = req.body;
+  const key = Object.keys(data)[0];
+  const value = data[key];
 
-  if (!app.locals.temperatureData) {
-    app.locals.temperatureData = {
+  if (!app.locals.data) {
+    app.locals.data = {
       'Температура 1-СК': null,
       'Температура 2-СК': null,
       'Температура 3-СК': null,
+      'Давление в топке печи': null,
+      'Давление газов после скруббера': null,
+      'Разрежение в пространстве котла утилизатора': null,
+      'Разрежение низ загрузочной камеры': null,
+      'Уровень в ванне скруббера': null,
+      'Уровень воды в емкости ХВО': null,
+      'Уровень воды в барабане котла': null,
     };
   }
 
-  console.log('Полученные данные:', temperatureData);
-  app.locals.temperatureData[key] = value;
+  console.log('Полученные данные:', data);
+  app.locals.data[key] = value;
 
   res.send('Данные успешно получены.');
 });
 
-
-
-// Обработчик callback-запросов на получение температуры
+// Обработчик callback-запросов на получение параметров
 bot.on('callback_query', (query) => {
   const chatId = query.message.chat.id;
   const action = query.data;
 
   if (action === 'get_temperature') {
-    const temperatureData = app.locals.temperatureData;
+    const data = app.locals.data;
 
-    if (temperatureData) {
+    if (data) {
       const table = `
-      Текущие параметры температуры
-      1-СК     |     ${'\u2705'} ${temperatureData['Температура 1-СК']}°C
-      2-СК     |     ${'\u2705'} ${temperatureData['Температура 2-СК']}°C
-      3-СК     |     ${'\u2705'} ${temperatureData['Температура 3-СК']}°C
+Текущие параметры
+\n
+Температуры:
+Температура 1-СК  |  ${data['Температура 1-СК']} °C
+Температура 2-СК  |  ${data['Температура 2-СК']} °C
+Температура 3-СК  |  ${data['Температура 3-СК']} °C
+\n
+Давления:
+Давление в топке печи   |  ${data['Давление в топке печи']} кгс/м2
+Давление газов после скруббера   |  ${data['Давление газов после скруббера']} кгс/м2
+\n
+Разрежения:
+Разрежение в пространстве котла утилизатора   |   ${data['Разрежение в пространстве котла утилизатора']} кгс/см2
+Разрежение низ загрузочной камеры   |   ${data['Разрежение низ загрузочной камеры']} кгс/см2
+\n
+Уровни:
+Уровень в ванне скруббера   |   ${data['Уровень в ванне скруббера']} мм
+Уровень воды в емкости ХВО   |   ${data['Уровень воды в емкости ХВО']} мм
+Уровень воды в барабане котла   |   ${data['Уровень воды в барабане котла']} мм
       `;
-      console.log('Отправка данных в Telegram:', temperatureData);
+      console.log('Отправка данных в Telegram:', data);
       bot.sendMessage(chatId, table, { parse_mode: 'HTML' });
     } else {
       bot.sendMessage(chatId, 'Нет данных для отображения.');
     }
   }
 });
-
-
 
 // Запуск сервера
 app.listen(PORT, () => {

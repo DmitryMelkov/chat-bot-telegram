@@ -1,7 +1,22 @@
-const temperatureData = {
-  temperature1: null,
-  temperature2: null,
-  temperature3: null,
+const types = {
+  temperature: {
+    temperature1: 'Температура 1-СК',
+    temperature2: 'Температура 2-СК',
+    temperature3: 'Температура 3-СК',
+  },
+  level: {
+    level1: 'Уровень в ванне скруббера',
+    level2: 'Уровень воды в емкости ХВО',
+    level3: 'Уровень воды в барабане котла',
+  },
+  pressure: {
+    pressure1: 'Давление в топке печи',
+    pressure2: 'Давление газов после скруббера',
+  },
+  underpressure: {
+    underpressure1: 'Разрежение в пространстве котла утилизатора',
+    underpressure2: 'Разрежение низ загрузочной камеры',
+  },
 };
 
 const sendDataToServer = (data) => {
@@ -24,18 +39,16 @@ window.addEventListener('message', (event) => {
   }
 
   const message = event.data;
-  const temperatureTypes = {
-    temperature1: 'Температура 1-СК',
-    temperature2: 'Температура 2-СК',
-    temperature3: 'Температура 3-СК',
-  };
 
-  if (temperatureTypes[message.type]) {
-    if (message.value !== null) {
-      const dataToSend = {};
-      dataToSend[temperatureTypes[message.type]] = message.value;
-      console.log('Отправка данных на сервер:', dataToSend); // Добавьте логирование
-      sendDataToServer(dataToSend);
+  // Проверка всех типов параметров
+  for (const type in types) {
+    if (types[type][message.type]) {
+      if (message.value !== null) {
+        const dataToSend = {};
+        dataToSend[types[type][message.type]] = message.value;
+        console.log('Отправка данных на сервер:', dataToSend); // Добавьте логирование
+        sendDataToServer(dataToSend);
+      }
     }
   }
 });
