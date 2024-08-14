@@ -32,9 +32,9 @@ const bot = new TelegramBot(TELEGRAM_BOT_TOKEN, {
 
 // Функция отправки кнопки "Получить температуру"
 const sendTemperatureButton = (chatId) => {
-  bot.sendMessage(chatId, 'Нажмите кнопку, чтобы получить температуру:', {
+  bot.sendMessage(chatId, 'Нажмите кнопку, чтобы получить текущие параметры:', {
     reply_markup: {
-      inline_keyboard: [[{ text: 'Получить температуру', callback_data: 'get_temperature' }]],
+      inline_keyboard: [[{ text: 'Текущие параметры', callback_data: 'get_temperature' }]],
     },
   });
 };
