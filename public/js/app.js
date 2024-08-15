@@ -1,36 +1,59 @@
 const types = {
   rezhim: {
-    rezhim1: 'Режим работы печи:'
+    pechVr1rezhim1: 'Печь ВР1 Режим работы печи:',
+    pechVr2rezhim1: 'Печь ВР2 Режим работы печи:',
   },
   temperature: {
-    temperature1: 'Температура 1-СК',
-    temperature2: 'Температура 2-СК',
-    temperature3: 'Температура 3-СК',
-    temperature4: 'Температура в топке',
-    temperature5: 'Температура вверху камеры загрузки',
-    temperature6: 'Температура внизу камеры загрузки',
-    temperature7: 'Температура на входе печи дожига',
-    temperature8: 'Температура на выходе печи дожига',
-    temperature9: 'Температура камеры выгрузки',
-    temperature10: 'Температура дымовых газов котла',
-    temperature11: 'Температура газов до скруббера',
-    temperature12: 'Температура газов после скруббера',
-    temperature13: 'Температура воды в ванне скруббер',
-    temperature14: 'Температура гранул после холод-ка',
+    pechVr1temperature1: 'Температура 1-СК печь ВР1',
+    pechVr1temperature2: 'Температура 2-СК печь ВР1',
+    pechVr1temperature3: 'Температура 3-СК печь ВР1',
+    pechVr1temperature4: 'Температура в топке печь ВР1',
+    pechVr1temperature5: 'Температура вверху камеры загрузки печь ВР1',
+    pechVr1temperature6: 'Температура внизу камеры загрузки печь ВР1',
+    pechVr1temperature7: 'Температура на входе печи дожига печь ВР1',
+    pechVr1temperature8: 'Температура на выходе печи дожига печь ВР1',
+    pechVr1temperature9: 'Температура камеры выгрузки печь ВР1',
+    pechVr1temperature10: 'Температура дымовых газов котла печь ВР1',
+    pechVr1temperature11: 'Температура газов до скруббера печь ВР1',
+    pechVr1temperature12: 'Температура газов после скруббера печь ВР1',
+    pechVr1temperature13: 'Температура воды в ванне скруббер печь ВР1',
+    pechVr1temperature14: 'Температура гранул после холод-ка печь ВР1',
+    pechVr2temperature1: 'Температура 1-СК печь ВР2',
+    pechVr2temperature2: 'Температура 2-СК печь ВР2',
+    pechVr2temperature3: 'Температура 3-СК печь ВР2',
+    pechVr2temperature4: 'Температура в топке печь ВР2',
+    pechVr2temperature5: 'Температура вверху камеры загрузки печь ВР2',
+    pechVr2temperature6: 'Температура внизу камеры загрузки печь ВР2',
+    pechVr2temperature7: 'Температура на входе печи дожига печь ВР2',
+    pechVr2temperature8: 'Температура на выходе печи дожига печь ВР2',
+    pechVr2temperature9: 'Температура камеры выгрузки печь ВР2',
+    pechVr2temperature10: 'Температура дымовых газов котла печь ВР2',
+    pechVr2temperature11: 'Температура газов до скруббера печь ВР2',
+    pechVr2temperature12: 'Температура газов после скруббера печь ВР2',
+    pechVr2temperature13: 'Температура воды в ванне скруббер печь ВР2',
+    pechVr2temperature14: 'Температура гранул после холод-ка печь ВР2',
   },
   level: {
-    level1: 'Уровень в ванне скруббера',
-    level2: 'Уровень воды в емкости ХВО',
-    level3: 'Уровень воды в барабане котла',
+    pechVr1level1: 'Уровень в ванне скруббера печь ВР1',
+    pechVr1level2: 'Уровень воды в емкости ХВО печь ВР1',
+    pechVr1level3: 'Уровень воды в барабане котла печь ВР1',
+    pechVr2level1: 'Уровень в ванне скруббера печь ВР2',
+    pechVr2level2: 'Уровень воды в емкости ХВО печь ВР2',
+    pechVr2level3: 'Уровень воды в барабане котла печь ВР2',
   },
   pressure: {
-    pressure1: 'Давление газов после скруббера',
-    pressure2: 'Давление пара в барабане котла',
+    pechVr1pressure1: 'Давление газов после скруббера печь ВР1',
+    pechVr1pressure2: 'Давление пара в барабане котла печь ВР1',
+    pechVr2pressure1: 'Давление газов после скруббера печь ВР2',
+    pechVr2pressure2: 'Давление пара в барабане котла печь ВР2',
   },
   underpressure: {
-    underpressure1: 'Разрежение в топке печи',
-    underpressure2: 'Разрежение в пространстве котла утилизатора',
-    underpressure3: 'Разрежение низ загрузочной камеры',
+    pechVr1underpressure1: 'Разрежение в топке печи печь ВР1',
+    pechVr1underpressure2: 'Разрежение в пространстве котла утилизатора печь ВР1',
+    pechVr1underpressure3: 'Разрежение низ загрузочной камеры печь ВР1',
+    pechVr2underpressure1: 'Разрежение в топке печи печь ВР2',
+    pechVr2underpressure2: 'Разрежение в пространстве котла утилизатора печь ВР2',
+    pechVr2underpressure3: 'Разрежение низ загрузочной камеры печь ВР2',
   },
 };
 
@@ -68,3 +91,12 @@ window.addEventListener('message', (event) => {
     }
   }
 });
+
+const autoRefreshIframe = () => {
+  setInterval(() => {
+    const iframe = document.querySelector('.iframe');
+    iframe.src = iframe.src;
+  }, 60000);
+};
+
+window.onload = autoRefreshIframe;
