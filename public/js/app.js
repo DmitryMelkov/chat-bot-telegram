@@ -94,8 +94,7 @@ window.addEventListener('message', (event) => {
 
 const autoRefreshIframe = () => {
   setInterval(() => {
-    const iframe = document.querySelector('.iframe');
-    iframe.src = iframe.src;
+    location.reload(); // Изменено здесь для обновления страницы
   }, 60000);
 };
 

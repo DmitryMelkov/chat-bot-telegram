@@ -1,11 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import dotenv from 'dotenv';
 import { initialData } from './data.js';
 import createTelegramBot from './telegramBot.js';
-
-dotenv.config(); // Загружаем переменные из .env
 
 const app = express();
 const PORT = process.env.PORT || 92;
@@ -14,12 +11,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 app.use(express.static(path.join(__dirname, '../public/')));
-app.use(express.json()); // Парсинг JSON из POST-запросов
+app.use(express.json());
 
-const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
-const proxyUrl = 'http://169.254.0.51:3274';
-
-const bot = createTelegramBot(TELEGRAM_BOT_TOKEN, proxyUrl, app); // Создаем бота и передаем app
+const bot = createTelegramBot(app); // Создаем бота и передаем app
 
 // Обработчик POST-запросов на обновление значений параметров
 app.post('/update-values', (req, res) => {
