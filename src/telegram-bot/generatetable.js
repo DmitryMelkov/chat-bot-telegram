@@ -3,6 +3,15 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
 
   // Функция проверки допустимого диапазона
   const checkRange = (value, min, max) => {
+    // Проверяем, работает ли печь
+    const isFurnaceWorking = data[`Печь ВР${furnaceNumber} Режим работы печи:`] !== 'Печь не работает';
+
+    if (!isFurnaceWorking) {
+      // Если печь не работает, возвращаем специальный символ, например знак вопроса
+      return '❓ ';
+    }
+
+    // Если печь работает, проверяем диапазон
     const transformedValue = parseFloat(value.replace(',', '.'));
     return transformedValue >= min && transformedValue <= max ? '✅ ' : '❌ ';
   };
