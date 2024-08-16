@@ -1,4 +1,4 @@
-import { editMessageWithButtons } from "./editMessage.js";
+import { editMessageWithButtons } from './editMessage.js';
 
 export const checkAndNotify = (data, bot, chatId, furnaceNumber, messageId) => {
   const temper1Skolz = data[`Температура 1-СК печь ВР${furnaceNumber}`];
