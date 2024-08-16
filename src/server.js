@@ -1,11 +1,13 @@
+// index.js
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { initialData } from './data.js';
-import createTelegramBot from './telegramBot.js';
+import { config } from './config/config.js';
+import { updateValuesRoute } from './routes/updateValues.js';
+import createTelegramBot from './telegram-bot/telegramBot.js';
 
 const app = express();
-const PORT = process.env.PORT || 92;
+const PORT = config.PORT;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,21 +17,8 @@ app.use(express.json());
 
 const bot = createTelegramBot(app); // Создаем бота и передаем app
 
-// Обработчик POST-запросов на обновление значений параметров
-app.post('/update-values', (req, res) => {
-  const data = req.body;
-  const key = Object.keys(data)[0];
-  const value = data[key];
-
-  if (!app.locals.data) {
-    app.locals.data = initialData;
-  }
-
-  console.log('Полученные данные:', data);
-  app.locals.data[key] = value;
-
-  res.send('Данные успешно получены.');
-});
+// Подключаем маршруты
+updateValuesRoute(app);
 
 // Запуск сервера
 app.listen(PORT, () => {
