@@ -18,13 +18,17 @@ export const handleCallbackQuery = (bot, app, query) => {
 
   const buttons = {
     furnace_1: [
-      [{ text: 'Текущие параметры', callback_data: 'get_temperature_1' }],
-      [{ text: 'Алармы', callback_data: 'check_alarms_1' }], // Добавляем кнопку Алармы
+      [
+        { text: 'Текущие параметры', callback_data: 'get_temperature_1' },
+        { text: 'Алармы', callback_data: 'check_alarms_1' }, // Кнопка Алармы в одной строке
+      ],
       [{ text: 'Назад', callback_data: 'production_carbon' }],
     ],
     furnace_2: [
-      [{ text: 'Текущие параметры', callback_data: 'get_temperature_2' }],
-      [{ text: 'Алармы', callback_data: 'check_alarms_2' }], // Добавляем кнопку Алармы
+      [
+        { text: 'Текущие параметры', callback_data: 'get_temperature_2' },
+        { text: 'Алармы', callback_data: 'check_alarms_2' }, // Кнопка Алармы в одной строке
+      ],
       [{ text: 'Назад', callback_data: 'production_carbon' }],
     ],
     production_carbon: [
@@ -41,9 +45,11 @@ export const handleCallbackQuery = (bot, app, query) => {
     const furnaceNumber = action === 'get_temperature_1' ? 1 : 2;
     const table = generateTablePechVr(data, furnaceNumber, currentTime);
     editMessageWithButtons(bot, chatId, query.message.message_id, table, [
-      [{ text: 'Алармы', callback_data: `check_alarms_${furnaceNumber}` }], // Кнопка Алармы
+      [
+        { text: 'Алармы', callback_data: `check_alarms_${furnaceNumber}` }, // Кнопка Алармы
+        { text: 'Обновить', callback_data: action },
+      ],
       [{ text: 'Назад', callback_data: `furnace_${furnaceNumber}` }],
-      [{ text: 'Обновить данные', callback_data: action }],
     ]);
   } else if (action.startsWith('check_alarms_')) {
     const furnaceNumber = action === 'check_alarms_1' ? 1 : 2;

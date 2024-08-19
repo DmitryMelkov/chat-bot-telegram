@@ -166,9 +166,11 @@ export const checkAndNotify = (data, bot, chatId, furnaceNumber, messageId) => {
 
   // Добавляем кнопки "Назад", "Обновить данные" и "Текущие параметры"
   const buttons = [
+    [
+      { text: 'Текущие параметры', callback_data: `get_temperature_${furnaceNumber}` }, // Кнопка Текущие параметры
+      { text: 'Обновить', callback_data: `check_alarms_${furnaceNumber}` },
+    ],
     [{ text: 'Назад', callback_data: `furnace_${furnaceNumber}` }],
-    [{ text: 'Обновить', callback_data: `check_alarms_${furnaceNumber}` }], // Кнопка для обновления алармов
-    [{ text: 'Текущие параметры', callback_data: `get_temperature_${furnaceNumber}` }], // Кнопка Текущие параметры
   ];
 
   // Обновляем текущее сообщение
@@ -179,5 +181,4 @@ export const checkAndNotify = (data, bot, chatId, furnaceNumber, messageId) => {
     `Режим работы печи: ${mode}\nВремя записи на сервер: ${timeRecorded}\n\nАлармы:\n\n${alertMessage}\nПоследнее обновление: ${lastUpdated}`,
     buttons
   );
-
 };
