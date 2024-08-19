@@ -18,6 +18,7 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
 
   const parameters = [
     `Режим работы печи: ${data[`Печь ВР${furnaceNumber} Режим работы печи:`]}`,
+    `Время записи на сервер: ${data[`Время записи на сервер для печь ВР${furnaceNumber}`]}`,
     '',
     'Температуры:',
     ...[1, 2, 3].map((i) => {
