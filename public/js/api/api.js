@@ -1,6 +1,6 @@
 export const sendDataToServer = async (data) => {
   try {
-    const response = await fetch('http://169.254.7.86:92/update-values', {
+    const response = await fetch('http://169.254.7.86:3001/update-values', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
