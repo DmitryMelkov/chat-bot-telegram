@@ -1,4 +1,3 @@
-// telegramBot.js
 import TelegramBot from 'node-telegram-bot-api';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { config } from '../config/config.js';
