@@ -2,7 +2,14 @@ import { sendMessageWithButtons } from './sendMessage.js';
 import { editMessageWithButtons } from './editMessage.js';
 import { generateTablePechVr } from './generateTable.js';
 import { checkAndNotify } from './alarms.js';
-import { generateChartVR1, generateChartVR2 } from './generateCharts.js';
+import {
+  generateTemperatureChartVR1,
+  generateTemperatureChartVR2,
+  generatePressureChartVR1,
+  generatePressureChartVR2,
+  generateWaterLevelChartVR1,
+  generateWaterLevelChartVR2,
+} from './generateCharts.js';
 
 export const handleMessage = (bot, chatId) => {
   sendMessageWithButtons(bot, chatId, 'Выберите интересующую опцию:', [
@@ -78,7 +85,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
     checkAndNotify(data, bot, chatId, furnaceNumber, query.message.message_id);
   } else if (action === 'chart_temperature_1') {
     try {
-      const chartBuffer = await generateChartVR1(); // Генерируем график для ВР1
+      const chartBuffer = await generateTemperatureChartVR1(); // Генерируем график для ВР1
       if (!chartBuffer || chartBuffer.length === 0) {
         throw new Error('График для ВР1 не был создан.');
       }
@@ -94,7 +101,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
     }
   } else if (action === 'chart_temperature_2') {
     try {
-      const chartBuffer = await generateChartVR2(); // Генерируем график для ВР2
+      const chartBuffer = await generateTemperatureChartVR2(); // Генерируем график для ВР2
       if (!chartBuffer || chartBuffer.length === 0) {
         throw new Error('График для ВР2 не был создан.');
       }
@@ -106,6 +113,70 @@ export const handleCallbackQuery = async (bot, app, query) => {
       });
     } catch (error) {
       console.error('Ошибка при генерации или отправке графика ВР2:', error);
+      await bot.sendMessage(chatId, 'Произошла ошибка при создании графика. Пожалуйста, попробуйте позже.');
+    }
+  } else if (action === 'chart_pressure_1') {
+    try {
+      const chartBuffer = await generatePressureChartVR1(); // Генерируем график давления/разрежения для ВР1
+      if (!chartBuffer || chartBuffer.length === 0) {
+        throw new Error('График давления/разрежения для ВР1 не был создан.');
+      }
+      await bot.sendPhoto(chatId, chartBuffer, {
+        caption: `График давления/разрежения для печи ВР1 за последний час`,
+        reply_markup: {
+          inline_keyboard: buttons['charts_1'],
+        },
+      });
+    } catch (error) {
+      console.error('Ошибка при генерации или отправке графика ВР1:', error);
+      await bot.sendMessage(chatId, 'Произошла ошибка при создании графика. Пожалуйста, попробуйте позже.');
+    }
+  } else if (action === 'chart_pressure_2') {
+    try {
+      const chartBuffer = await generatePressureChartVR2(); // Генерируем график давления/разрежения для ВР2
+      if (!chartBuffer || chartBuffer.length === 0) {
+        throw new Error('График давления/разрежения для ВР2 не был создан.');
+      }
+      await bot.sendPhoto(chatId, chartBuffer, {
+        caption: `График давления/разрежения для печи ВР2 за последний час`,
+        reply_markup: {
+          inline_keyboard: buttons['charts_2'],
+        },
+      });
+    } catch (error) {
+      console.error('Ошибка при генерации или отправке графика ВР2:', error);
+      await bot.sendMessage(chatId, 'Произошла ошибка при создании графика. Пожалуйста, попробуйте позже.');
+    }
+  } else if (action === 'chart_level_1') {
+    try {
+      const chartBuffer = await generateWaterLevelChartVR1(); // Генерация графика уровня воды для ВР1
+      if (!chartBuffer || chartBuffer.length === 0) {
+        throw new Error('График уровня воды для ВР1 не был создан.');
+      }
+      await bot.sendPhoto(chatId, chartBuffer, {
+        caption: `График уровня воды для печи ВР1 за последний час`,
+        reply_markup: {
+          inline_keyboard: buttons['charts_1'],
+        },
+      });
+    } catch (error) {
+      console.error('Ошибка при генерации или отправке графика уровня воды ВР1:', error);
+      await bot.sendMessage(chatId, 'Произошла ошибка при создании графика. Пожалуйста, попробуйте позже.');
+    }
+  } else if (action === 'chart_level_2') {
+    try {
+      const chartBuffer = await generateWaterLevelChartVR2(); // Генерация графика уровня воды для ВР2
+      if (!chartBuffer || chartBuffer.length === 0) {
+        throw new Error('График уровня воды для ВР2 не был создан.');
+      }
+      await bot.sendPhoto(chatId, chartBuffer, {
+        caption: `График уровня воды для печи ВР2 за последний час`,
+        reply_markup: {
+          inline_keyboard: buttons['charts_2'],
+        },
+      });
+    } catch (error) {
+      console.error('Ошибка при генерации или отправке графика уровня воды ВР2:', error);
       await bot.sendMessage(chatId, 'Произошла ошибка при создании графика. Пожалуйста, попробуйте позже.');
     }
   } else {
