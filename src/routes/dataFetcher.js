@@ -1,29 +1,52 @@
-import axios from "axios";
-import * as cheerio from "cheerio";
+import axios from 'axios';
+import * as cheerio from 'cheerio';
 
 export async function fetchData() {
   try {
-    const response = await axios.get('http://169.254.0.156/kaskad/Web_Clnt.dll/ShowPage?production/carbon/pechiVr/pechiVrTelegram.htm');
-    const $ = cheerio.load(response.data);
+    const responsePechiVr = await axios.get(
+      'http://169.254.0.156/kaskad/Web_Clnt.dll/ShowPage?production/carbon/pechiVr/pechiVrTelegram.htm'
+    );
+    const responseNotis = await axios.get(
+      'http://169.254.0.164/kaskad/Web_Clnt.dll/ShowPage?production/carbon/notisi/pechiVrNotisTelegram.htm'
+    );
 
-    // Функция для извлечения данных по селекторам
-    const extractData = (selectors) => selectors.map(selector => $(selector).text().trim());
+    const $Vr = cheerio.load(responsePechiVr.data);
+    const $Notis = cheerio.load(responseNotis.data);
 
-    // Категории данных и их селекторы
+    const extractData = (selectors, $) => selectors.map((selector) => $(selector).text().trim());
+
     const categories = {
       temperatureVr1: [
-        '.bot-vr1-temper-1-skolz', '.bot-vr1-temper-2-skolz', '.bot-vr1-temper-3-skolz',
-        '.bot-vr1-temper-topka', '.bot-vr1-temper-verh-kam', '.bot-vr1-temper-niz-kam',
-        '.bot-vr1-temper-vhod-pechi', '.bot-vr1-temper-vihod-dozhig', '.bot-vr1-temper-kamer-vygruz',
-        '.bot-vr1-temper-kotel', '.bot-vr1-temper-do-skruber', '.bot-vr1-temper-posle-skruber',
-        '.bot-vr1-temper-skruber', '.bot-vr1-temper-granul'
+        '.bot-vr1-temper-1-skolz',
+        '.bot-vr1-temper-2-skolz',
+        '.bot-vr1-temper-3-skolz',
+        '.bot-vr1-temper-topka',
+        '.bot-vr1-temper-verh-kam',
+        '.bot-vr1-temper-niz-kam',
+        '.bot-vr1-temper-vhod-pechi',
+        '.bot-vr1-temper-vihod-dozhig',
+        '.bot-vr1-temper-kamer-vygruz',
+        '.bot-vr1-temper-kotel',
+        '.bot-vr1-temper-do-skruber',
+        '.bot-vr1-temper-posle-skruber',
+        '.bot-vr1-temper-skruber',
+        '.bot-vr1-temper-granul',
       ],
       temperatureVr2: [
-        '.bot-vr2-temper-1-skolz', '.bot-vr2-temper-2-skolz', '.bot-vr2-temper-3-skolz',
-        '.bot-vr2-temper-topka', '.bot-vr2-temper-verh-kam', '.bot-vr2-temper-niz-kam',
-        '.bot-vr2-temper-vhod-pechi', '.bot-vr2-temper-vihod-dozhig', '.bot-vr2-temper-kamer-vygruz',
-        '.bot-vr2-temper-kotel', '.bot-vr2-temper-do-skruber', '.bot-vr2-temper-posle-skruber',
-        '.bot-vr2-temper-skruber', '.bot-vr2-temper-granul'
+        '.bot-vr2-temper-1-skolz',
+        '.bot-vr2-temper-2-skolz',
+        '.bot-vr2-temper-3-skolz',
+        '.bot-vr2-temper-topka',
+        '.bot-vr2-temper-verh-kam',
+        '.bot-vr2-temper-niz-kam',
+        '.bot-vr2-temper-vhod-pechi',
+        '.bot-vr2-temper-vihod-dozhig',
+        '.bot-vr2-temper-kamer-vygruz',
+        '.bot-vr2-temper-kotel',
+        '.bot-vr2-temper-do-skruber',
+        '.bot-vr2-temper-posle-skruber',
+        '.bot-vr2-temper-skruber',
+        '.bot-vr2-temper-granul',
       ],
       levelVr1: ['.bot-vr1-uroven-skrubber', '.bot-vr1-uroven-hvo', '.bot-vr1-uroven-kotla'],
       levelVr2: ['.bot-vr2-uroven-skrubber', '.bot-vr2-uroven-hvo', '.bot-vr2-uroven-kotla'],
@@ -35,16 +58,38 @@ export async function fetchData() {
       imVr2: ['.bot-vr2-im-kotla'],
       gorelkaVr1: ['.bot-vr1-mosh-gorelki'],
       gorelkaVr2: ['.bot-vr2-mosh-gorelki'],
-      timeVr: ['.bot-vr-time']
+      timeVr: ['.bot-vr-time'],
     };
 
-    // Извлечение данных
+    const categoriesNotis = {
+      doseVr1: [
+        '.bot-vr1-dose-g-min',
+        '.bot-vr1-dose-kg-h',
+        '.bot-vr1-dose-g',
+        '.bot-vr1-dose-number-pieces',
+        '.bot-vr1-total-weight-tons',
+        '.bot-vr1-test',
+      ],
+      doseVr2: [
+        '.bot-vr2-dose-g-min',
+        '.bot-vr2-dose-kg-h',
+        '.bot-vr2-dose-g',
+        '.bot-vr2-dose-number-pieces',
+        '.bot-vr2-total-weight-tons',
+        '.bot-vr2-test',
+      ],
+      timeNotis: ['.bot-vr-notis-time'],
+    };
+
     const data = {};
     for (const [key, selectors] of Object.entries(categories)) {
-      data[key] = extractData(selectors);
+      data[key] = extractData(selectors, $Vr);
     }
 
-    // Присвоение имен
+    for (const [key, selectors] of Object.entries(categoriesNotis)) {
+      data[key] = extractData(selectors, $Notis);
+    }
+
     const namedData = {
       'Температура 1-СК печь ВР1': data.temperatureVr1[0],
       'Температура 2-СК печь ВР1': data.temperatureVr1[1],
@@ -69,8 +114,8 @@ export async function fetchData() {
       'Разрежение в пространстве котла утилизатора печь ВР1': data.underPressureVr1[1],
       'Разрежение низ загрузочной камеры печь ВР1': data.underPressureVr1[2],
       'Исполнительный механизм котла ВР1': data.imVr1[0],
-      'Мощность горелки ВР1':data.gorelkaVr1[0] ,
-      'Время записи на сервер для печь ВР1':data.timeVr[0],
+      'Мощность горелки ВР1': data.gorelkaVr1[0],
+      'Время записи на сервер для печь ВР1': data.timeVr[0],
 
       'Температура 1-СК печь ВР2': data.temperatureVr2[0],
       'Температура 2-СК печь ВР2': data.temperatureVr2[1],
@@ -95,20 +140,46 @@ export async function fetchData() {
       'Разрежение в пространстве котла утилизатора печь ВР2': data.underPressureVr2[1],
       'Разрежение низ загрузочной камеры печь ВР2': data.underPressureVr2[2],
       'Исполнительный механизм котла ВР2': data.imVr2[0],
-      'Мощность горелки ВР2':data.gorelkaVr2[0],
-      'Время записи на сервер для печь ВР2':data.timeVr[0],
+      'Мощность горелки ВР2': data.gorelkaVr2[0],
+      'Время записи на сервер для печь ВР2': data.timeVr[0],
+
+      // Дозаторы Нотис ВР1
+      'Дозатор ВР1 Г/мин': data.doseVr1[0],
+      'Дозатор ВР1 Кг/час': data.doseVr1[1],
+      'Дозатор ВР1 Общий вес в граммах': data.doseVr1[2],
+      'Дозатор ВР1 Количество штук': data.doseVr1[3],
+      'Дозатор ВР1 Общий вес в тоннах': data.doseVr1[4],
+      'Время записи на сервер Нотис ВР1': data.timeNotis[0],
+
+      // Дозаторы Нотис ВР2
+      'Дозатор ВР2 Г/мин': data.doseVr2[0],
+      'Дозатор ВР2 Кг/час': data.doseVr2[1],
+      'Дозатор ВР2 Общий вес в граммах': data.doseVr2[2],
+      'Дозатор ВР2 Количество штук': data.doseVr2[3],
+      'Дозатор ВР2 Общий вес в тоннах': data.doseVr2[4],
+      'Время записи на сервер Нотис ВР2': data.timeNotis[0],
     };
 
-    // console.log('Извлеченные данные:', namedData);
+    // console.log('Данные для отправки:', namedData);
 
     for (const [key, value] of Object.entries(namedData)) {
-      await axios.post('http://169.254.7.86:3001/update-values', { [key]: value });
-      // await axios.post('http://169.254.0.167:3001/update-values', { [key]: value });
-
+      try {
+        const response = await axios.post('http://169.254.7.86:3001/update-values', JSON.stringify({ [key]: value }), {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+        // console.log(`Успешно отправлено: ${key} -> ${value}, Ответ сервера:`, response.data);
+      } catch (error) {
+        console.error(
+          `Ошибка при отправке данных для ключа: ${key}`,
+          error.response ? error.response.data : error.message
+        );
+      }
     }
   } catch (error) {
-    console.error('Ошибка при получении данных:', error);
+    console.error('Ошибка при получении данных:', error.message);
   }
-};
+}
 
 setInterval(fetchData, 30000);

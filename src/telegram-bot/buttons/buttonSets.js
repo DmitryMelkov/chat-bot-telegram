@@ -3,20 +3,24 @@ export const getButtonsByAction = (action) => {
     furnace_1: [
       [
         { text: 'Текущие параметры', callback_data: 'get_temperature_1' },
-        { text: 'Графики', callback_data: 'charts_1' },
+        { text: 'Дозаторы Нотис', callback_data: 'get_dose_notis_1' },
       ],
       [
+        { text: 'Графики', callback_data: 'charts_1' },
         { text: 'Архив графиков', callback_data: 'charts_archive_1' },
-        { text: 'Назад', callback_data: 'production_carbon' }
       ],
+      [{ text: 'Назад', callback_data: 'production_carbon' }],
     ],
     furnace_2: [
       [
         { text: 'Текущие параметры', callback_data: 'get_temperature_2' },
-        { text: 'Графики', callback_data: 'charts_2' },
+        { text: 'Дозаторы Нотис', callback_data: 'get_dose_notis_2' },
       ],
-      [{ text: 'Архив графиков', callback_data: 'charts_archive_2' },
-        { text: 'Назад', callback_data: 'production_carbon' }],
+      [
+        { text: 'Графики', callback_data: 'charts_2' },
+        { text: 'Архив графиков', callback_data: 'charts_archive_2' },
+      ],
+      [{ text: 'Назад', callback_data: 'production_carbon' }],
     ],
     production_carbon: [
       [
