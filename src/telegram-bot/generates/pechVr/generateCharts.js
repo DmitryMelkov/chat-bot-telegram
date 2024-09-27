@@ -1,5 +1,5 @@
-import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { FurnaceVR1, FurnaceVR2 } from '../../../models/FurnanceModel.js';
+import { createChartConfig, renderChartToBuffer } from '../../chartConfig.js';
 
 const generateChart = async (
   FurnaceModel,
@@ -10,10 +10,10 @@ const generateChart = async (
   yMin,
   yMax,
   yAxisStep,
-  timeRangeInHours // новый аргумент
+  timeRangeInHours
 ) => {
   const currentTime = new Date();
-  const timeRangeInMillis = timeRangeInHours * 60 * 60 * 1000; // переводим время в миллисекунды
+  const timeRangeInMillis = timeRangeInHours * 60 * 60 * 1000;
   const timeAgo = new Date(currentTime.getTime() - timeRangeInMillis);
 
   const datasetsPromises = keys.map((key) => {
@@ -24,7 +24,6 @@ const generateChart = async (
 
   datasets.forEach((dataset, index) => {
     if (dataset.length === 0) {
-      console.error(`No data found for ${keys[index]}`);
       throw new Error(`Нет данных для ${keys[index]} за выбранный период времени для ${chartTitle}.`);
     }
   });
@@ -32,82 +31,8 @@ const generateChart = async (
   const timestamps = datasets[0].map((d) => new Date(d.timestamp).toLocaleString());
   const values = datasets.map((dataset) => dataset.map((d) => parseFloat(d.value.replace(',', '.'))));
 
-  const colors = [
-    'rgb(54, 162, 235)',
-    'rgb(255, 99, 132)',
-    'rgb(255, 206, 86)',
-    'rgb(75, 192, 192)',
-    'rgb(153, 102, 255)',
-    'rgb(255, 159, 64)',
-    'rgb(201, 203, 207)',
-    'rgb(100, 100, 100)',
-    'rgb(0, 200, 100)',
-    'rgb(255, 100, 0)',
-    'rgb(0, 0, 255)',
-    'rgb(100, 255, 100)',
-    'rgb(255, 0, 255)',
-    'rgb(200, 200, 0)',
-    'rgb(0, 255, 255)',
-  ];
-
-  const chartJSNodeCanvas = new ChartJSNodeCanvas({ width: 1280, height: 1024 });
-  const config = {
-    type: 'line',
-    data: {
-      labels: timestamps,
-      datasets: values.map((data, index) => ({
-        label: labels[index],
-        data,
-        fill: false,
-        borderColor: colors[index % colors.length],
-        backgroundColor: colors[index % colors.length],
-        borderWidth: 1.5,
-        tension: 0.1,
-        pointRadius: 0,
-      })),
-    },
-    options: {
-      scales: {
-        x: {
-          title: { display: true, text: 'Время' },
-          ticks: {
-            autoSkip: true,
-            maxTicksLimit: 24,
-          },
-        },
-        y: {
-          title: { display: true, text: yAxisTitle },
-          min: yMin,
-          max: yMax,
-          beginAtZero: false,
-          ticks: {
-            stepSize: yAxisStep,
-          },
-        },
-        y2: {
-          title: { display: true, text: yAxisTitle },
-          position: 'right',
-          min: yMin,
-          max: yMax,
-          beginAtZero: false,
-          ticks: {
-            stepSize: yAxisStep,
-          },
-        },
-      },
-      plugins: {
-        title: { display: true, text: chartTitle },
-      },
-    },
-  };
-
-  const buffer = await chartJSNodeCanvas.renderToBuffer(config);
-
-  if (!buffer || buffer.length === 0) {
-    throw new Error(`Не удалось создать график для ${chartTitle}`);
-  }
-
-  return buffer;
+  const config = createChartConfig(timestamps, values, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
+  return renderChartToBuffer(config);
 };
 
 // Температура: от 0 до 1500

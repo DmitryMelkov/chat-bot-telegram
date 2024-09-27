@@ -1,5 +1,5 @@
-import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
 import { FurnaceVR1, FurnaceVR2 } from '../../../models/FurnanceModel.js';
+import { createChartConfig, renderChartToBuffer } from '../../chartConfig.js';
 
 const generateChartForDate = async (
   FurnaceModel,
@@ -10,29 +10,20 @@ const generateChartForDate = async (
   yMin,
   yMax,
   yAxisStep,
-  userDate // новый аргумент
+  userDate
 ) => {
-  // Преобразуем введённую дату в формат yyyy-mm-dd и добавляем время и часовой пояс
   const [day, month, year] = userDate.split('.').map(Number);
-  const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0); // Начало дня
-  const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999); // Конец дня
-
-  if (isNaN(startOfDay.getTime()) || isNaN(endOfDay.getTime())) {
-    throw new Error('Неверный формат даты. Пожалуйста, введите дату в формате dd.mm.yyyy.');
-  }
+  const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
+  const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
 
   const datasetsPromises = keys.map((key) => {
-    return FurnaceModel.find({
-      key,
-      timestamp: { $gte: startOfDay, $lte: endOfDay }
-    }).sort({ timestamp: 1 });
+    return FurnaceModel.find({ key, timestamp: { $gte: startOfDay, $lte: endOfDay } }).sort({ timestamp: 1 });
   });
 
   const datasets = await Promise.all(datasetsPromises);
 
   datasets.forEach((dataset, index) => {
     if (dataset.length === 0) {
-      console.error(`No data found for ${keys[index]} for the selected date range.`);
       throw new Error(`Нет данных для ${keys[index]} за выбранный период времени для ${chartTitle}.`);
     }
   });
@@ -40,86 +31,11 @@ const generateChartForDate = async (
   const timestamps = datasets[0].map((d) => new Date(d.timestamp).toLocaleString());
   const values = datasets.map((dataset) => dataset.map((d) => parseFloat(d.value.replace(',', '.'))));
 
-  const colors = [
-    'rgb(54, 162, 235)',
-    'rgb(255, 99, 132)',
-    'rgb(255, 206, 86)',
-    'rgb(75, 192, 192)',
-    'rgb(153, 102, 255)',
-    'rgb(255, 159, 64)',
-    'rgb(201, 203, 207)',
-    'rgb(100, 100, 100)',
-    'rgb(0, 200, 100)',
-    'rgb(255, 100, 0)',
-    'rgb(0, 0, 255)',
-    'rgb(100, 255, 100)',
-    'rgb(255, 0, 255)',
-    'rgb(200, 200, 0)',
-    'rgb(0, 255, 255)',
-  ];
-
-  const chartJSNodeCanvas = new ChartJSNodeCanvas({ width: 1280, height: 1024 });
-  const config = {
-    type: 'line',
-    data: {
-      labels: timestamps,
-      datasets: values.map((data, index) => ({
-        label: labels[index],
-        data,
-        fill: false,
-        borderColor: colors[index % colors.length],
-        backgroundColor: colors[index % colors.length],
-        borderWidth: 1.5,
-        tension: 0.1,
-        pointRadius: 0,
-      })),
-    },
-    options: {
-      scales: {
-        x: {
-          title: { display: true, text: 'Время' },
-          ticks: {
-            autoSkip: true,
-            maxTicksLimit: 24,
-          },
-        },
-        y: {
-          title: { display: true, text: yAxisTitle },
-          min: yMin,
-          max: yMax,
-          beginAtZero: false,
-          ticks: {
-            stepSize: yAxisStep,
-          },
-        },
-        y2: {
-          title: { display: true, text: yAxisTitle },
-          position: 'right',
-          min: yMin,
-          max: yMax,
-          beginAtZero: false,
-          ticks: {
-            stepSize: yAxisStep,
-          },
-        },
-      },
-      plugins: {
-        title: { display: true, text: chartTitle },
-      },
-    },
-  };
-
-  const buffer = await chartJSNodeCanvas.renderToBuffer(config);
-
-  if (!buffer || buffer.length === 0) {
-    throw new Error(`Не удалось создать график для ${chartTitle}`);
-  }
-
-  return buffer;
+  const config = createChartConfig(timestamps, values, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
+  return renderChartToBuffer(config);
 };
 
 const generateTemperatureChartArchive = async (FurnaceModel, chartTitle, userDate, suffix) => {
-
   const Keys = [
     `Температура 1-СК печь ${suffix}`,
     `Температура 2-СК печь ${suffix}`,
@@ -154,21 +70,10 @@ const generateTemperatureChartArchive = async (FurnaceModel, chartTitle, userDat
     'Температура гранул после холод-ка',
   ];
 
-  return generateChartForDate(
-    FurnaceModel,
-    Keys,
-    labels,
-    'Температура (°C)',
-    chartTitle,
-    0,
-    1500,
-    50,
-    userDate
-  );
+  return generateChartForDate(FurnaceModel, Keys, labels, 'Температура (°C)', chartTitle, 0, 1500, 50, userDate);
 };
 
 const generatePressureChartArchive = async (FurnaceModel, chartTitle, userDate, suffix) => {
-
   const Keys = [
     `Давление газов после скруббера печь ${suffix}`,
     `Давление пара в барабане котла печь ${suffix}`,
@@ -183,7 +88,7 @@ const generatePressureChartArchive = async (FurnaceModel, chartTitle, userDate, 
     'Разрежение в топке',
     'Разрежение в пространстве котла утилизатора',
     'Разрежение низ загрузочной камеры',
-    'Мощность горелки'
+    'Мощность горелки',
   ];
 
   return generateChartForDate(
@@ -201,28 +106,11 @@ const generatePressureChartArchive = async (FurnaceModel, chartTitle, userDate, 
 
 // / Функция генерации графиков уровня
 const generateWaterLevelChartArchive = async (FurnaceModel, chartTitle, userDate, suffix) => {
+  const Keys = [`Уровень воды в барабане котла печь ${suffix}`, `Исполнительный механизм котла печь ${suffix}`];
 
-  const Keys = [
-    `Уровень воды в барабане котла печь ${suffix}`,
-    `Исполнительный механизм котла печь ${suffix}`
-  ];
+  const labels = ['Уровень воды', 'Степень открытия исполнительного механизма'];
 
-  const labels = [
-    'Уровень воды',
-    'Степень открытия исполнительного механизма'
-  ];
-
-  return generateChartForDate(
-    FurnaceModel,
-    Keys,
-    labels,
-    'Уровень (мм)',
-    chartTitle,
-    -200,
-    200,
-    10,
-    userDate
-  );
+  return generateChartForDate(FurnaceModel, Keys, labels, 'Уровень (мм)', chartTitle, -200, 200, 10, userDate);
 };
 
 // Вызов архива температур
