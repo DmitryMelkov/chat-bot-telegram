@@ -204,7 +204,7 @@ const generateWaterLevelChartArchive = async (FurnaceModel, chartTitle, userDate
 
   const Keys = [
     `Уровень воды в барабане котла печь ${suffix}`,
-    `Исполнительный механизм котла ${suffix}`
+    `Исполнительный механизм котла печь ${suffix}`
   ];
 
   const labels = [

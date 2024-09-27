@@ -1,9 +1,12 @@
 import { getButtonsByAction } from '../buttons/buttonSets.js';
 import { handleChartGeneration } from '../buttons/chartHandlers.js';
-import { generateDoseTableNotis, generateTablePechVr } from '../generates/pechVr/generatetable.js';
+import { generateTablePechVr } from '../generates/pechVr/generatetable.js';
 import { checkAndNotify } from '../generates/pechVr/alarms.js';
-import { chartGenerators } from '../buttons/chartGenerators.js'; // Исправленный импорт
+import { chartGenerators } from '../buttons/chartGenerators.js';
 import { handleHelp } from '../commands/help.js';
+import { generateDoseTableNotis } from '../generates/notis/generateTable.js';
+import { NotisVR1, NotisVR2 } from '../../models/NotisModel.js';
+import { checkLoading, getLastFiverValuesNotis } from '../../routes/updateValues.js';
 
 export const handleCallbackQuery = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -69,7 +72,14 @@ export const handleCallbackQuery = async (bot, app, query) => {
       const furnaceNumber = action.includes('1') ? 1 : 2;
       const data = app.locals.data;
 
-      const doseTable = generateDoseTableNotis(data, furnaceNumber);
+      // Получаем последние 5 значений "Кг/час"
+      const lastFiveValues = await getLastFiverValuesNotis(furnaceNumber === 1 ? NotisVR1 : NotisVR2, `Дозатор ВР${furnaceNumber} Кг/час`);
+
+      // Проверяем статус загрузки нотиса
+      const loadStatus = checkLoading(lastFiveValues);
+
+      // Генерация таблицы дозатора с учетом статуса работы
+      const doseTable = generateDoseTableNotis(data, furnaceNumber, loadStatus);
 
       const buttonSet = [
         [

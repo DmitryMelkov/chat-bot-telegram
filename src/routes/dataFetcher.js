@@ -1,17 +1,27 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import iconv from 'iconv-lite';  // Подключаем библиотеку для преобразования кодировок
 
 export async function fetchData() {
   try {
+    // Запрашиваем страницы с дозаторами и печами
     const responsePechiVr = await axios.get(
-      'http://169.254.0.156/kaskad/Web_Clnt.dll/ShowPage?production/carbon/pechiVr/pechiVrTelegram.htm'
-    );
-    const responseNotis = await axios.get(
-      'http://169.254.0.164/kaskad/Web_Clnt.dll/ShowPage?production/carbon/notisi/pechiVrNotisTelegram.htm'
+      'http://169.254.0.156/kaskad/Web_Clnt.dll/ShowPage?production/carbon/pechiVr/pechiVrTelegram.htm',
+      { responseType: 'arraybuffer' }  // Указываем тип ответа
     );
 
-    const $Vr = cheerio.load(responsePechiVr.data);
-    const $Notis = cheerio.load(responseNotis.data);
+    const responseNotis = await axios.get(
+      'http://169.254.0.164/kaskad/Web_Clnt.dll/ShowPage?production/carbon/notisi/pechiVrNotisTelegram.htm',
+      { responseType: 'arraybuffer' }  // Указываем тип ответа
+    );
+
+    // Преобразуем данные в нужную кодировку (Windows-1251)
+    const decodedDataPechiVr = iconv.decode(Buffer.from(responsePechiVr.data), 'windows-1251');
+    const decodedDataNotis = iconv.decode(Buffer.from(responseNotis.data), 'windows-1251');
+
+    // Парсинг данных с помощью cheerio
+    const $Vr = cheerio.load(decodedDataPechiVr);
+    const $Notis = cheerio.load(decodedDataNotis);
 
     const extractData = (selectors, $) => selectors.map((selector) => $(selector).text().trim());
 
@@ -113,8 +123,8 @@ export async function fetchData() {
       'Разрежение в топке печи печь ВР1': data.underPressureVr1[0],
       'Разрежение в пространстве котла утилизатора печь ВР1': data.underPressureVr1[1],
       'Разрежение низ загрузочной камеры печь ВР1': data.underPressureVr1[2],
-      'Исполнительный механизм котла ВР1': data.imVr1[0],
-      'Мощность горелки ВР1': data.gorelkaVr1[0],
+      'Исполнительный механизм котла печь ВР1': data.imVr1[0],
+      'Мощность горелки печь ВР1': data.gorelkaVr1[0],
       'Время записи на сервер для печь ВР1': data.timeVr[0],
 
       'Температура 1-СК печь ВР2': data.temperatureVr2[0],
@@ -139,28 +149,26 @@ export async function fetchData() {
       'Разрежение в топке печи печь ВР2': data.underPressureVr2[0],
       'Разрежение в пространстве котла утилизатора печь ВР2': data.underPressureVr2[1],
       'Разрежение низ загрузочной камеры печь ВР2': data.underPressureVr2[2],
-      'Исполнительный механизм котла ВР2': data.imVr2[0],
-      'Мощность горелки ВР2': data.gorelkaVr2[0],
+      'Исполнительный механизм котла печь ВР2': data.imVr2[0],
+      'Мощность горелки печь ВР2': data.gorelkaVr2[0],
       'Время записи на сервер для печь ВР2': data.timeVr[0],
 
       // Дозаторы Нотис ВР1
-      'Дозатор ВР1 Г/мин': data.doseVr1[0],
-      'Дозатор ВР1 Кг/час': data.doseVr1[1],
-      'Дозатор ВР1 Общий вес в граммах': data.doseVr1[2],
-      'Дозатор ВР1 Количество штук': data.doseVr1[3],
-      'Дозатор ВР1 Общий вес в тоннах': data.doseVr1[4],
+      'Нотис ВР1 Г/мин': data.doseVr1[0],
+      'Нотис ВР1 Кг/час': data.doseVr1[1],
+      'Нотис ВР1 Общий вес в граммах': data.doseVr1[2],
+      'Нотис ВР1 Количество штук': data.doseVr1[3],
+      'Нотис ВР1 Общий вес в тоннах': data.doseVr1[4],
       'Время записи на сервер Нотис ВР1': data.timeNotis[0],
 
       // Дозаторы Нотис ВР2
-      'Дозатор ВР2 Г/мин': data.doseVr2[0],
-      'Дозатор ВР2 Кг/час': data.doseVr2[1],
-      'Дозатор ВР2 Общий вес в граммах': data.doseVr2[2],
-      'Дозатор ВР2 Количество штук': data.doseVr2[3],
-      'Дозатор ВР2 Общий вес в тоннах': data.doseVr2[4],
+      'Нотис ВР2 Г/мин': data.doseVr2[0],
+      'Нотис ВР2 Кг/час': data.doseVr2[1],
+      'Нотис ВР2 Общий вес в граммах': data.doseVr2[2],
+      'Нотис ВР2 Количество штук': data.doseVr2[3],
+      'Нотис ВР2 Общий вес в тоннах': data.doseVr2[4],
       'Время записи на сервер Нотис ВР2': data.timeNotis[0],
     };
-
-    // console.log('Данные для отправки:', namedData);
 
     for (const [key, value] of Object.entries(namedData)) {
       try {
@@ -169,7 +177,6 @@ export async function fetchData() {
             'Content-Type': 'application/json',
           },
         });
-        // console.log(`Успешно отправлено: ${key} -> ${value}, Ответ сервера:`, response.data);
       } catch (error) {
         console.error(
           `Ошибка при отправке данных для ключа: ${key}`,
@@ -182,4 +189,5 @@ export async function fetchData() {
   }
 }
 
+// Устанавливаем интервал обновления данных каждые 30 секунд
 setInterval(fetchData, 30000);

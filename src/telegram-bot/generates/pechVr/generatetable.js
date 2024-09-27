@@ -119,7 +119,7 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
   };
 
   // Параметры исполнительных механизмов
-  const ims = [formatIm('Котла-утилизатора', `Исполнительный механизм котла ВР${furnaceNumber}`, '%')];
+  const ims = [formatIm('Котла-утилизатора', `Исполнительный механизм котла печь ВР${furnaceNumber}`, '%')];
 
   // Форматирование мощности горелки
   const formatGorelka = (label, key, unit) => {
@@ -130,7 +130,7 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
   };
 
   // Параметры горелок
-  const gorelki = [formatGorelka('Мощность горелки', `Мощность горелки ВР${furnaceNumber}`, '%')];
+  const gorelki = [formatGorelka('Мощность горелки', `Мощность горелки печь ВР${furnaceNumber}`, '%')];
 
   // Объединение всех параметров в один массив
   const parameters = [

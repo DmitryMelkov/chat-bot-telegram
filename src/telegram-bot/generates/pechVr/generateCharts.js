@@ -184,7 +184,7 @@ const generatePressureChart = async (FurnaceModel, chartTitle, timeRangeInHours,
 
 // / Функция генерации графиков уровня
 const generateWaterLevelChart = async (FurnaceModel, chartTitle, timeRangeInHours, suffix) => {
-  const Keys = [`Уровень воды в барабане котла печь ${suffix}`, `Исполнительный механизм котла ${suffix}`];
+  const Keys = [`Уровень воды в барабане котла печь ${suffix}`, `Исполнительный механизм котла печь ${suffix}`];
 
   const labels = ['Уровень воды', 'Степень открытия исполнительного механизма'];
 
