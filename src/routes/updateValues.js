@@ -24,9 +24,9 @@ export function checkLoading(values) {
   const isSame = values.every((value) => value === values[0]);
 
   if (isSame) {
-    return 'Загрузки нет (параметры не изменяются).';
+    return 'Загрузки нет';
   } else {
-    return 'Идет загрузка (параметры изменяются).';
+    return 'Идет загрузка';
   }
 }
 
@@ -35,11 +35,16 @@ export const updateValuesRoute = (app) => {
   app.post('/update-values', async (req, res) => {
     const data = req.body;
     const key = Object.keys(data)[0];
-    const value = data[key];
+    let value = data[key];
 
     // Инициализация данных в памяти
     if (!app.locals.data) {
       app.locals.data = initialData;
+    }
+
+    // Если значение содержит "Ош.43", устанавливаем значение -100
+    if (value === 'Ош.43') {
+      value = -111;
     }
 
     // Обновляем данные в памяти

@@ -1,13 +1,21 @@
 export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentTime = new Date().toLocaleString()) => {
   if (!data) return 'Нет данных для отображения.';
 
-  // Функция, которая всегда возвращает зеленую галочку
-  const checkRange = () => '✅ ';
+  // Функция для проверки допустимого диапазона и возвращения соответствующего символа
+  const checkRange = (value, loadStatus) => {
+    if (value === -111) {
+      return '❓ ';
+    } else if (loadStatus === 'Загрузки нет') {
+      return '❌ ';
+    } else {
+      return '✅ ';
+    }
+  };
 
   // Форматирование данных для нотис
   const formatDose = (label, key, unit) => {
     const value = data[key] || 'нет данных';
-    return `${checkRange()}${label}: ${value} ${unit}`;
+    return `${checkRange(value, loadStatus)}${label}: ${value} ${unit}`;
   };
 
   // Параметры нотис
@@ -34,7 +42,9 @@ export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentT
     '',
     ...doses,
     '',
-    `Статус работы нотиса: ${loadStatus}`, // Добавляем статус работы нотиса
+    `Статус работы нотиса: ${loadStatus}`,
+    '',
+    '*Если значение параметров = -111 это значит нет связи с нотисом',
     '',
     `Обновлено: ${currentTime}`,
   ];
