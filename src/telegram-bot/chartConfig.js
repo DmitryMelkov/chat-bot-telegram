@@ -1,4 +1,5 @@
 import { ChartJSNodeCanvas } from 'chartjs-node-canvas';
+import moment from 'moment';
 
 const colors = [
   'rgb(54, 162, 235)',
@@ -22,7 +23,10 @@ export const createChartConfig = (timestamps, values, labels, yAxisTitle, chartT
   return {
     type: 'line',
     data: {
-      labels: timestamps,
+      labels: timestamps.map((timestamp) => {
+        const formattedDate = moment(timestamp, 'DD.MM.YYYY, HH:mm:ss').format('HH:mm');
+        return formattedDate; // Преобразование в формат часы:минуты
+      }),
       datasets: values.map((data, index) => ({
         label: labels[index],
         data,
@@ -40,7 +44,7 @@ export const createChartConfig = (timestamps, values, labels, yAxisTitle, chartT
           title: { display: true, text: 'Время' },
           ticks: {
             autoSkip: true,
-            maxTicksLimit: 24,
+            maxTicksLimit: 20,
           },
         },
         y: {
