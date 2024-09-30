@@ -1,10 +1,11 @@
+import { generateDoseChartArchiveVR1, generateDoseChartArchiveVR2 } from '../generates/notis/generateArchives.js';
 import {
   generateTemperatureChartArchiveVR1,
   generateTemperatureChartArchiveVR2,
   generatePressureChartArchiveVR1,
   generatePressureChartArchiveVR2,
   generateWaterLevelChartArchiveVR1,
-  generateWaterLevelChartArchiveVR2
+  generateWaterLevelChartArchiveVR2,
 } from '../generates/pechVr/generateArchives.js';
 
 // Определяем меню для печи 1
@@ -15,6 +16,9 @@ const charts_archive_1 = [
   ],
   [
     { text: 'Уровень', callback_data: 'archive_level_1' },
+    { text: 'Нотисы', callback_data: 'archive_dose_1' },  // Добавляем кнопку для архивов нотисов
+  ],
+  [
     { text: 'Назад', callback_data: 'furnace_1' },
   ],
 ];
@@ -27,6 +31,9 @@ const charts_archive_2 = [
   ],
   [
     { text: 'Уровень', callback_data: 'archive_level_2' },
+    { text: 'Нотисы', callback_data: 'archive_dose_2' },  // Добавляем кнопку для архивов нотисов
+  ],
+  [
     { text: 'Назад', callback_data: 'furnace_2' },
   ],
 ];
@@ -62,6 +69,10 @@ export const handleTextMessage = async (bot, app, msg) => {
         generateChartForDate = furnaceNumber === 1
           ? () => generateWaterLevelChartArchiveVR1(userMessage)
           : () => generateWaterLevelChartArchiveVR2(userMessage);
+      } else if (state.action.startsWith('archive_dose_')) {  // Добавляем обработку архивов нотисов
+        generateChartForDate = furnaceNumber === 1
+          ? () => generateDoseChartArchiveVR1(userMessage)
+          : () => generateDoseChartArchiveVR2(userMessage);
       } else {
         throw new Error('Unknown action type.');
       }
@@ -87,6 +98,8 @@ export const handleTextMessage = async (bot, app, msg) => {
         description = `Сгенерирован график давления за ${userMessage}.`;
       } else if (state.action.startsWith('archive_level_')) {
         description = `Сгенерирован график уровня воды за ${userMessage}.`;
+      } else if (state.action.startsWith('archive_dose_')) {
+        description = `Сгенерирован график дозы кг/ч за ${userMessage}.`;
       } else {
         description = 'Генерация графика завершена.';
       }
@@ -119,7 +132,6 @@ export const handleTextMessage = async (bot, app, msg) => {
           ]
         }
       });
-      // Не очищаем состояние, чтобы позволить повторный ввод
     }
   }
 };

@@ -29,7 +29,20 @@ const generateChartForDate = async (
   });
 
   const timestamps = datasets[0].map((d) => new Date(d.timestamp).toLocaleString());
-  const values = datasets.map((dataset) => dataset.map((d) => parseFloat(d.value.replace(',', '.'))));
+  const values = datasets.map((dataset) =>
+    dataset.map((d) => {
+      // Проверяем, является ли d.value строкой
+      if (typeof d.value === 'string') {
+        // Если это строка, заменяем запятую на точку
+        return parseFloat(d.value.replace(',', '.'));
+      } else if (typeof d.value === 'number') {
+        // Если это уже число, просто возвращаем его
+        return d.value;
+      } else {
+        throw new Error(`Некорректный тип данных для значения: ${d.value}`);
+      }
+    })
+  );
 
   const config = createChartConfig(timestamps, values, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
   return renderChartToBuffer(config);

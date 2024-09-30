@@ -18,7 +18,9 @@ export const handleChartGeneration = async (bot, chatId, action) => {
 
     const furnaceNumber = action.includes('1') ? 1 : 2;
     const chartType = action.includes('temperature') ? 'температуры' :
-                      action.includes('pressure') ? 'давления/разрежения' : 'уровня';
+                      action.includes('pressure') ? 'давления/разрежения' :
+                      action.includes('level') ? 'уровня' :
+                      action.includes('dose') ? 'Доза (Кг/час)' : 'неизвестного параметра';
 
     await bot.sendPhoto(chatId, chartBuffer, {
       caption: `График ${chartType} для печи карбонизации №${furnaceNumber}`,

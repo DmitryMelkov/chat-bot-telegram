@@ -49,6 +49,10 @@ export const handleCallbackQuery = async (bot, app, query) => {
       } else if (action.startsWith('archive_level_')) {
         chartType = 'уровня';
         chartTitle = `График уровня ${furnaceNumber === 1 ? '1' : '2'} за сутки`;
+      } else if (action.startsWith('archive_dose_')) {
+        // Добавляем обработку архивов дозы
+        chartType = 'Доза (Кг/час)';
+        chartTitle = `График Доза ВР${furnaceNumber} за сутки`;
       }
       // Убедитесь, что userStates инициализирован
       app.locals.userStates = app.locals.userStates || {};
@@ -73,7 +77,10 @@ export const handleCallbackQuery = async (bot, app, query) => {
       const data = app.locals.data;
 
       // Получаем последние 5 значений "Кг/час"
-      const lastFiveValues = await getLastFiverValuesNotis(furnaceNumber === 1 ? NotisVR1 : NotisVR2, `Дозатор ВР${furnaceNumber} Кг/час`);
+      const lastFiveValues = await getLastFiverValuesNotis(
+        furnaceNumber === 1 ? NotisVR1 : NotisVR2,
+        `Дозатор ВР${furnaceNumber} Кг/час`
+      );
 
       // Проверяем статус загрузки нотиса
       const loadStatus = checkLoading(lastFiveValues);

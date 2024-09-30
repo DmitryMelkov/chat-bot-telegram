@@ -1,3 +1,12 @@
+import { generateDoseChartArchiveVR1, generateDoseChartArchiveVR2 } from '../generates/notis/generateArchives.js';
+import {
+  generateDose12HourChartVR1,
+  generateDose12HourChartVR2,
+  generateDose24HourChartVR1,
+  generateDose24HourChartVR2,
+  generateDoseOneHourChartVR1,
+  generateDoseOneHourChartVR2,
+} from '../generates/notis/generateCharts.js';
 import {
   generateTemperature24HourChartVR1,
   generateTemperature24HourChartVR2,
@@ -44,3 +53,15 @@ export const chartGenerators = {
   chart_level_2_Twelve: (params) => generateLevel12HourChartVR2(params),
   chart_level_2_Hour: (params) => generateLevelOneHourChartVR2(params),
 };
+
+chartGenerators['chart_dose_1_Day'] = (params) => generateDose24HourChartVR1(params);
+chartGenerators['chart_dose_1_Twelve'] = (params) => generateDose12HourChartVR1(params);
+chartGenerators['chart_dose_1_Hour'] = (params) => generateDoseOneHourChartVR1(params);
+
+chartGenerators['chart_dose_2_Day'] = (params) => generateDose24HourChartVR2(params);
+chartGenerators['chart_dose_2_Twelve'] = (params) => generateDose12HourChartVR2(params);
+chartGenerators['chart_dose_2_Hour'] = (params) => generateDoseOneHourChartVR2(params);
+
+
+chartGenerators['archive_dose_1'] = (params) => generateDoseChartArchiveVR1(params);
+chartGenerators['archive_dose_2'] = (params) => generateDoseChartArchiveVR2(params);
