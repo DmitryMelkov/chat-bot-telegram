@@ -36,6 +36,7 @@ export const createChartConfig = (timestamps, values, labels, yAxisTitle, chartT
         borderWidth: 1.5,
         tension: 0.1,
         pointRadius: 0,
+        spanGaps: false, // Важно для отображения разрывов
       })),
     },
     options: {

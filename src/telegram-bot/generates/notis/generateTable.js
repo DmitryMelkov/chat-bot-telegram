@@ -44,8 +44,6 @@ export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentT
     '',
     `Статус работы нотиса: ${loadStatus}`,
     '',
-    '*Если значение параметров = -111 это значит нет связи с нотисом',
-    '',
     `Обновлено: ${currentTime}`,
   ];
 
