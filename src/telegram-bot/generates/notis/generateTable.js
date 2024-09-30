@@ -3,7 +3,7 @@ export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentT
 
   // Функция для проверки допустимого диапазона и возвращения соответствующего символа
   const checkRange = (value, loadStatus) => {
-    if (value === -111) {
+    if (value === 'Нет данных') {
       return '❓ ';
     } else if (loadStatus === 'Загрузки нет') {
       return '❌ ';

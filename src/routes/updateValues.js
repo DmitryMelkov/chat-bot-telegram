@@ -21,12 +21,12 @@ export async function getLastFiverValuesNotis(furnaceModel, parameterKey) {
 // Функция для проверки режима работы нотиса
 export function checkLoading(values) {
   // Проверяем, все ли значения одинаковые
-  const isSame = values.every((value) => value === values[0]);
+  const isSame = values.every((value) => parseFloat(value) === parseFloat(values[0]));
 
   if (isSame) {
-    return 'Загрузки нет';
-  } else {
     return 'Идет загрузка';
+  } else {
+    return 'Загрузки нет';
   }
 }
 
