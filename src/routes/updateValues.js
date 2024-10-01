@@ -85,13 +85,10 @@ export const updateValuesRoute = (app) => {
         const lastFiveValues = await getLastValuesNotis(model, key);
         const loadStatus = checkLoading(lastFiveValues);
 
-        console.log(lastFiveValues);
-        console.log(loadStatus);
-
         // Генерация таблицы дозатора с учетом статуса работы
         const furnaceNumber = key.includes('ВР1') ? 1 : 2;
         const doseTable = generateDoseTableNotis(app.locals.data, furnaceNumber, loadStatus);
-        // Отправьте doseTable в чат или используйте по необходимости
+        // для дальнейшего использования doseTable
       }
 
       res.send('Данные успешно сохранены.');

@@ -15,8 +15,6 @@ const generateDoseChartArchive = async (FurnaceModel, chartTitle, userDate, suff
     const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
     const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
 
-    console.log('Проверка даты:', startOfDay, endOfDay); // Логирование даты
-
     // Получаем данные по указанным ключам за этот день
     const Keys = [`Нотис ВР${suffix} Кг/час`];
     const datasetsPromises = Keys.map((key) => {
@@ -46,7 +44,12 @@ const generateDoseChartArchive = async (FurnaceModel, chartTitle, userDate, suff
     );
 
     const labels = ['Доза Кг/час'];
-    const config = createChartConfig(timestamps, values, labels, 'Доза (Кг/час)', chartTitle, 0, 1500, 10);
+
+    // Добавляем дату в заголовок графика
+    const titleWithDate = `${chartTitle} за ${userDate}`;
+
+    // Генерация конфигурации графика
+    const config = createChartConfig(timestamps, values, labels, 'Доза (Кг/час)', titleWithDate, 0, 1500, 10);
     return renderChartToBuffer(config);
   } catch (error) {
     // Логируем и возвращаем ошибку с сообщением

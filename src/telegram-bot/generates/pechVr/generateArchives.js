@@ -83,7 +83,10 @@ const generateTemperatureChartArchive = async (FurnaceModel, chartTitle, userDat
     'Температура гранул после холод-ка',
   ];
 
-  return generateChartForDate(FurnaceModel, Keys, labels, 'Температура (°C)', chartTitle, 0, 1500, 50, userDate);
+  // Добавляем дату в заголовок графика
+  const titleWithDate = `${chartTitle} за ${userDate}`;
+
+  return generateChartForDate(FurnaceModel, Keys, labels, 'Температура (°C)', titleWithDate, 0, 1500, 50, userDate);
 };
 
 const generatePressureChartArchive = async (FurnaceModel, chartTitle, userDate, suffix) => {
@@ -104,12 +107,15 @@ const generatePressureChartArchive = async (FurnaceModel, chartTitle, userDate, 
     'Мощность горелки',
   ];
 
+  // Добавляем дату в заголовок графика
+  const titleWithDate = `${chartTitle} за ${userDate}`;
+
   return generateChartForDate(
     FurnaceModel,
     Keys,
     labels,
     'Давление/Разрежение (кгс/м2, кгс/см2)',
-    chartTitle,
+    titleWithDate,
     -30,
     30,
     5,
@@ -117,13 +123,16 @@ const generatePressureChartArchive = async (FurnaceModel, chartTitle, userDate, 
   );
 };
 
-// / Функция генерации графиков уровня
+// Функция генерации графиков уровня
 const generateWaterLevelChartArchive = async (FurnaceModel, chartTitle, userDate, suffix) => {
   const Keys = [`Уровень воды в барабане котла печь ${suffix}`, `Исполнительный механизм котла печь ${suffix}`];
 
   const labels = ['Уровень воды', 'Степень открытия исполнительного механизма'];
 
-  return generateChartForDate(FurnaceModel, Keys, labels, 'Уровень (мм)', chartTitle, -200, 200, 10, userDate);
+  // Добавляем дату в заголовок графика
+  const titleWithDate = `${chartTitle} за ${userDate}`;
+
+  return generateChartForDate(FurnaceModel, Keys, labels, 'Уровень (мм)', titleWithDate, -200, 200, 10, userDate);
 };
 
 // Вызов архива температур
