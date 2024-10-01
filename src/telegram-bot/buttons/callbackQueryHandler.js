@@ -6,7 +6,7 @@ import { chartGenerators } from '../buttons/chartGenerators.js';
 import { handleHelp } from '../commands/help.js';
 import { generateDoseTableNotis } from '../generates/notis/generateTable.js';
 import { NotisVR1, NotisVR2 } from '../../models/NotisModel.js';
-import { checkLoading, getLastFiverValuesNotis } from '../../routes/updateValues.js';
+import { checkLoading, getLastValuesNotis } from '../../routes/updateValues.js';
 
 export const handleCallbackQuery = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -77,9 +77,9 @@ export const handleCallbackQuery = async (bot, app, query) => {
       const data = app.locals.data;
 
       // Получаем последние 5 значений "Кг/час"
-      const lastFiveValues = await getLastFiverValuesNotis(
+      const lastFiveValues = await getLastValuesNotis(
         furnaceNumber === 1 ? NotisVR1 : NotisVR2,
-        `Дозатор ВР${furnaceNumber} Кг/час`
+        `Нотис ВР${furnaceNumber} Кг/час`
       );
 
       // Проверяем статус загрузки нотиса

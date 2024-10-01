@@ -26,7 +26,6 @@ const generateDoseChartArchive = async (FurnaceModel, chartTitle, userDate, suff
     const datasets = await Promise.all(datasetsPromises);
 
     datasets.forEach((dataset, index) => {
-      console.log(`Количество данных для ${Keys[index]}:`, dataset.length); // Логирование результата запроса
       if (dataset.length === 0) {
         throw new Error(`Нет данных для ${Keys[index]} за выбранный период времени для ${chartTitle}.`);
       }

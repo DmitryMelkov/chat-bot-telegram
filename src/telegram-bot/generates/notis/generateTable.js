@@ -1,21 +1,27 @@
-export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentTime = new Date().toLocaleString()) => {
+export const generateDoseTableNotis = (
+  data,
+  furnaceNumber,
+  loadStatus,
+  currentTime = new Date().toLocaleString()
+) => {
   if (!data) return 'Нет данных для отображения.';
 
-  // Функция для проверки допустимого диапазона и возвращения соответствующего символа
-  const checkRange = (value, loadStatus) => {
+  // Функция для определения значка на основе статуса загрузки
+  const getStatusIcon = (value, loadStatus) => {
     if (value === 'Нет данных') {
       return '❓ ';
-    } else if (loadStatus === 'Загрузки нет') {
-      return '❌ ';
-    } else {
+    } else if (loadStatus === 'Идет загрузка') {
       return '✅ ';
+    } else {
+      return '❌ ';
     }
   };
 
   // Форматирование данных для нотис
   const formatDose = (label, key, unit) => {
-    const value = data[key] || 'нет данных';
-    return `${checkRange(value, loadStatus)}${label}: ${value} ${unit}`;
+    const value = data[key] || 'Нет данных';
+    const icon = getStatusIcon(value, loadStatus);
+    return `${icon}${label}: ${value} ${unit};`;
   };
 
   // Параметры нотис
@@ -28,21 +34,21 @@ export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentT
   ];
 
   // Проверка времени записи на сервер
-  const serverTime = data[`Время записи на сервер Нотис ВР${furnaceNumber}`] || 'нет данных';
+  const serverTime = data[`Время записи на сервер Нотис ВР${furnaceNumber}`] || 'Нет данных';
 
   // Объединение всех параметров в один массив
   const parameters = [
-    `Текущие параметры нотисы`,
+    'Текущие параметры нотис',
     `Печь карбонизации №${furnaceNumber}`,
     '',
-    `Время записи на сервер:`,
+    'Время записи на сервер:',
     `${serverTime}`,
     '',
     'Параметры дозаторов:',
     '',
     ...doses,
     '',
-    `Статус работы нотиса: ${loadStatus}`,
+    `Статус работы нотиса: ${loadStatus}`, // Используем переданный статус корректно
     '',
     `Обновлено: ${currentTime}`,
   ];

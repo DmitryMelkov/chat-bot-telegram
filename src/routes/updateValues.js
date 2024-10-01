@@ -4,12 +4,12 @@ import { NotisVR1, NotisVR2 } from '../models/NotisModel.js';
 import { generateDoseTableNotis } from '../telegram-bot/generates/notis/generateTable.js';
 
 // Функция для получения последних 5 значений параметра "Кг/час" из базы данных
-export async function getLastFiverValuesNotis(furnaceModel, parameterKey) {
+export async function getLastValuesNotis(furnaceModel, parameterKey) {
   try {
     const results = await furnaceModel
       .find({ key: parameterKey }) // Фильтруем по ключу (Кг/час)
       .sort({ timestamp: -1 }) // Сортируем по времени (от новых к старым)
-      .limit(5); // Ограничиваем количество записей до 5
+      .limit(3); // Ограничиваем количество записей до 5
 
     return results.map((doc) => doc.value);
   } catch (error) {
@@ -18,15 +18,25 @@ export async function getLastFiverValuesNotis(furnaceModel, parameterKey) {
   }
 }
 
-// Функция для проверки режима работы нотиса
+// Обновленная функция checkLoading
 export function checkLoading(values) {
-  // Проверяем, все ли значения одинаковые
-  const isSame = values.every((value) => parseFloat(value) === parseFloat(values[0]));
+  // Преобразуем запятую в точку и затем выполняем parseFloat
+  const convertedValues = values
+    .map((value) => (value === 'Нет данных' ? null : parseFloat(value.replace(',', '.'))))
+    .filter((value) => value !== null); // Исключаем значения "Нет данных"
 
-  if (isSame) {
-    return 'Идет загрузка';
-  } else {
+  // Если массив пуст или не содержит данных, считаем, что загрузки нет
+  if (convertedValues.length === 0) {
     return 'Загрузки нет';
+  }
+
+  // Проверяем, одинаковы ли все значения
+  const allSame = convertedValues.every((val, _, arr) => val === arr[0]);
+
+  if (allSame) {
+    return 'Загрузки нет';
+  } else {
+    return 'Идет загрузка';
   }
 }
 
@@ -42,7 +52,7 @@ export const updateValuesRoute = (app) => {
       app.locals.data = initialData;
     }
 
-    // Если значение содержит "Ош.43", устанавливаем значение -100
+    // Если значение содержит "Ош.43", устанавливаем значение "Нет данных"
     if (value === 'Ош.43') {
       value = 'Нет данных';
     }
@@ -72,13 +82,16 @@ export const updateValuesRoute = (app) => {
 
       // Проверка режима работы после обновления данных
       if (key.includes('Кг/час')) {
-        const lastFiveValues = await getLastFiverValuesNotis(model, key);
+        const lastFiveValues = await getLastValuesNotis(model, key);
         const loadStatus = checkLoading(lastFiveValues);
+
+        console.log(lastFiveValues);
+        console.log(loadStatus);
 
         // Генерация таблицы дозатора с учетом статуса работы
         const furnaceNumber = key.includes('ВР1') ? 1 : 2;
         const doseTable = generateDoseTableNotis(app.locals.data, furnaceNumber, loadStatus);
-        // console.log(`\n${doseTable}`);
+        // Отправьте doseTable в чат или используйте по необходимости
       }
 
       res.send('Данные успешно сохранены.');
