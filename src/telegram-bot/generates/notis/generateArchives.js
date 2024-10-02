@@ -49,7 +49,7 @@ const generateDoseChartArchive = async (FurnaceModel, chartTitle, userDate, suff
     const titleWithDate = `${chartTitle} за ${userDate}`;
 
     // Генерация конфигурации графика
-    const config = createChartConfig(timestamps, values, labels, 'Доза (Кг/час)', titleWithDate, 0, 1500, 10);
+    const config = createChartConfig(timestamps, values, labels, 'Доза (Кг/час)', titleWithDate, 200, 1000, 10);
     return renderChartToBuffer(config);
   } catch (error) {
     // Логируем и возвращаем ошибку с сообщением

@@ -36,7 +36,7 @@ const generateDoseChart = async (FurnaceModel, chartTitle, timeRangeInHours, suf
 
   const labels = ['Доза Кг/час'];
 
-  const config = createChartConfig(timestamps, values, labels, 'Доза (Кг/час)', chartTitle, 0, 1500, 10);
+  const config = createChartConfig(timestamps, values, labels, 'Доза (Кг/час)', chartTitle, 200, 1000, 10);
   return renderChartToBuffer(config);
 };
 
