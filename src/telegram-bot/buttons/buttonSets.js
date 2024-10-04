@@ -1,5 +1,15 @@
 export const getButtonsByAction = (action) => {
   const buttons = {
+    production_carbon: [
+      [
+        { text: 'ПК 1', callback_data: 'furnace_1' },
+        { text: 'ПК 2', callback_data: 'furnace_2' },
+      ],
+      [
+        { text: 'МПА 2', callback_data: 'furnace_mpa2' },
+        { text: 'МПА 3', callback_data: 'furnace_mpa3' },
+      ],
+    ],
     furnace_1: [
       [
         { text: 'Текущие параметры', callback_data: 'get_temperature_1' },
@@ -22,10 +32,24 @@ export const getButtonsByAction = (action) => {
       ],
       [{ text: 'Назад', callback_data: 'production_carbon' }],
     ],
-    production_carbon: [
+    furnace_mpa2: [
       [
-        { text: 'ПК 1', callback_data: 'furnace_1' },
-        { text: 'ПК 2', callback_data: 'furnace_2' },
+        { text: 'Текущие параметры', callback_data: 'get_params_mpa2' },
+        { text: 'Графики', callback_data: 'charts_mpa2' },
+      ],
+      [
+        { text: 'Архивы графиков', callback_data: 'charts_archive_mpa2' },
+        { text: 'Назад', callback_data: 'production_carbon' },
+      ],
+    ],
+    furnace_mpa3: [
+      [
+        { text: 'Текущие параметры', callback_data: 'get_params_mpa3' },
+        { text: 'Графики', callback_data: 'charts_mpa3' },
+      ],
+      [
+        { text: 'Архивы графиков', callback_data: 'charts_archive_mpa3' },
+        { text: 'Назад', callback_data: 'production_carbon' },
       ],
     ],
     charts_1: [

@@ -7,6 +7,7 @@ import { handleHelp } from '../commands/help.js';
 import { generateDoseTableNotis } from '../generates/notis/generateTable.js';
 import { NotisVR1, NotisVR2 } from '../../models/NotisModel.js';
 import { checkLoading, getLastValuesNotis } from '../../routes/updateValues.js';
+import { generateTableMpa } from '../generates/pechiMPA/generatetable.js';
 
 export const handleCallbackQuery = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -54,14 +55,11 @@ export const handleCallbackQuery = async (bot, app, query) => {
         chartType = 'Доза (Кг/час)';
         chartTitle = `График Доза ВР${furnaceNumber} за сутки`;
       }
-      // Убедитесь, что userStates инициализирован
       app.locals.userStates = app.locals.userStates || {};
-      // Запросите дату у пользователя
       const requestDateMessage = await bot.sendMessage(
         chatId,
         `Введите дату в формате dd.mm.yyyy для графика ${chartType}.`
       );
-      // Сохраните состояние запроса для последующей обработки
       app.locals.userStates[chatId] = {
         action: `${action}`,
         messageId: requestDateMessage.message_id,
@@ -99,10 +97,33 @@ export const handleCallbackQuery = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
+    } else if (action.startsWith('get_params_mpa2') || action.startsWith('get_params_mpa3')) {
+      const mpaNumber = action.includes('mpa2') ? 2 : 3;
+      const currentTime = new Date().toLocaleString();
+      const data = app.locals.data;
+
+      // Генерация таблицы для печей МПА2 и МПА3
+      const table = generateTableMpa(data, mpaNumber, currentTime);
+
+      // Кнопки "Обновить" и "Назад"
+      const buttonSet = [
+        [
+          { text: 'Обновить', callback_data: `get_params_mpa${mpaNumber}` },
+          { text: 'Назад', callback_data: `furnace_mpa${mpaNumber}` },
+        ],
+      ];
+
+      await bot.editMessageText(table, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: { inline_keyboard: buttonSet },
+      });
     } else {
       const actionMap = {
-        furnace_1: 'Печи карбонизации №1',
-        furnace_2: 'Печи карбонизации №2',
+        furnace_1: 'Печь карбонизации №1',
+        furnace_2: 'Печь карбонизации №2',
+        furnace_mpa2: 'Печь МПА2',
+        furnace_mpa3: 'Печь МПА3',
         back_to_main: 'Выберите интересующую опцию:',
       };
 

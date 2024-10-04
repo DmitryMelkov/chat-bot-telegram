@@ -1,9 +1,4 @@
-export const generateDoseTableNotis = (
-  data,
-  furnaceNumber,
-  loadStatus,
-  currentTime = new Date().toLocaleString()
-) => {
+export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentTime = new Date().toLocaleString()) => {
   if (!data) return 'Нет данных для отображения.';
 
   // Функция для определения значка на основе статуса загрузки
@@ -33,8 +28,12 @@ export const generateDoseTableNotis = (
     formatDose('Общий вес в тоннах', `Нотис ВР${furnaceNumber} Общий вес в тоннах`, 'тонн'),
   ];
 
-  // Проверка времени записи на сервер
-  const serverTime = data[`Время записи на сервер Нотис ВР${furnaceNumber}`] || 'Нет данных';
+  // Проверка времени записи на сервер с разделением даты и времени, если данные есть
+  const serverTime = data[`Время записи на сервер Нотис ВР${furnaceNumber}`]
+    ? `${data[`Время записи на сервер Нотис ВР${furnaceNumber}`].slice(0, 10)} ${data[
+        `Время записи на сервер Нотис ВР${furnaceNumber}`
+      ].slice(10)}`
+    : 'Нет данных';
 
   // Объединение всех параметров в один массив
   const parameters = [
@@ -48,9 +47,9 @@ export const generateDoseTableNotis = (
     '',
     ...doses,
     '',
-    `Статус работы нотиса: ${loadStatus}`, // Используем переданный статус корректно
+    `Статус работы нотиса: ${loadStatus}`, // Используем переданный статус
     '',
-    `Обновлено: ${currentTime}`,
+    `Обновлено: ${currentTime.slice(0, 10)} ${currentTime.slice(10)}`, // Аналогично разделяем текущее время
   ];
 
   // Формирование итоговой строки

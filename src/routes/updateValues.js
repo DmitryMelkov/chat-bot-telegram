@@ -1,5 +1,6 @@
 import { initialData } from '../data/initialData.js';
 import { FurnaceVR1, FurnaceVR2 } from '../models/FurnanceModel.js';
+import { FurnaceMPA2, FurnaceMPA3 } from '../models/FurnanceMPAModel.js';
 import { NotisVR1, NotisVR2 } from '../models/NotisModel.js';
 import { generateDoseTableNotis } from '../telegram-bot/generates/notis/generateTable.js';
 
@@ -72,6 +73,10 @@ export const updateValuesRoute = (app) => {
       model = NotisVR1;
     } else if (key.includes('Нотис ВР2')) {
       model = NotisVR2;
+    } else if (key.includes('МПА2')) {
+      model = FurnaceMPA2;
+    } else if (key.includes('МПА3')) {
+      model = FurnaceMPA3;
     } else {
       return res.status(400).send('Некорректный ключ данных.');
     }
