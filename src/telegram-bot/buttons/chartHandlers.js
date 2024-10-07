@@ -16,18 +16,44 @@ export const handleChartGeneration = async (bot, chatId, action) => {
       throw new Error(`График не был создан для ${action}`);
     }
 
-    const furnaceNumber = action.includes('1') ? 1 : 2;
-    const chartType = action.includes('temperature') ? 'температуры' :
-                      action.includes('pressure') ? 'давления/разрежения' :
-                      action.includes('level') ? 'уровня' :
-                      action.includes('dose') ? 'Доза (Кг/час)' : 'неизвестного параметра';
+    // Определение печи и параметра
+    let furnaceNumber, furnaceType;
+    if (action.includes('vr1') || action.includes('vr2')) {
+      furnaceNumber = action.includes('vr1') ? 1 : 2;
+      furnaceType = 'печи карбонизации';
+    } else if (action.includes('mpa2') || action.includes('mpa3')) {
+      furnaceNumber = action.includes('mpa2') ? 2 : 3;
+      furnaceType = 'МПА';
+    } else {
+      furnaceNumber = 'неизвестной';
+      furnaceType = 'неизвестного типа';
+    }
 
+    const chartType = action.includes('temperature')
+      ? 'температуры'
+      : action.includes('pressure')
+      ? 'давления/разрежения'
+      : action.includes('level')
+      ? 'уровня'
+      : action.includes('dose')
+      ? 'Доза (Кг/час)'
+      : 'неизвестного параметра';
+
+    // Отправка графика с правильной подписью
     await bot.sendPhoto(chatId, chartBuffer, {
-      caption: `График ${chartType} для печи карбонизации №${furnaceNumber}`,
+      caption: `График ${chartType} для ${furnaceType} №${furnaceNumber}`,
     });
 
     await bot.deleteMessage(chatId, loadingMessage.message_id);
-    const buttonSet = getButtonsByAction(`charts_${furnaceNumber}`);
+
+    // Определение правильного набора кнопок для карбонизации и МПА
+    let buttonSet;
+    if (furnaceType === 'печи карбонизации') {
+      buttonSet = getButtonsByAction(`charts_vr${furnaceNumber}`);
+    } else if (furnaceType === 'МПА') {
+      buttonSet = getButtonsByAction(`charts_mpa${furnaceNumber}`);
+    }
+
     await sendMessageWithButtons(bot, chatId, 'Выберите следующий график или вернитесь назад:', buttonSet);
   } catch (error) {
     console.error(`Ошибка при генерации или отправке графика ${action}:`, error);

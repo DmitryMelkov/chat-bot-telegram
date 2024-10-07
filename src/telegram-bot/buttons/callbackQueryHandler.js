@@ -16,8 +16,8 @@ export const handleCallbackQuery = async (bot, app, query) => {
   await bot.answerCallbackQuery(query.id);
 
   try {
-    if (action.startsWith('get_temperature_')) {
-      const furnaceNumber = action.includes('1') ? 1 : 2;
+    if (action.startsWith('get_params_vr')) {
+      const furnaceNumber = action.includes('vr1') ? 1 : 2;
       const currentTime = new Date().toLocaleString();
       const data = app.locals.data;
 
@@ -25,7 +25,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
       const buttonSet = [
         [{ text: 'Алармы', callback_data: `check_alarms_${furnaceNumber}` }],
         [{ text: 'Обновить', callback_data: action }],
-        [{ text: 'Назад', callback_data: `furnace_${furnaceNumber}` }],
+        [{ text: 'Назад', callback_data: `furnace_vr${furnaceNumber}` }],
       ];
 
       await bot.editMessageText(table, {
@@ -34,13 +34,13 @@ export const handleCallbackQuery = async (bot, app, query) => {
         reply_markup: { inline_keyboard: buttonSet },
       });
     } else if (action.startsWith('check_alarms_')) {
-      const furnaceNumber = action.includes('1') ? 1 : 2;
+      const furnaceNumber = action.includes('vr1') ? 1 : 2;
       const data = app.locals.data;
       await checkAndNotify(data, bot, chatId, furnaceNumber, query.message.message_id);
     } else if (action.startsWith('archive_')) {
       let chartType;
       let chartTitle;
-      const furnaceNumber = action.includes('1') ? 1 : 2;
+      const furnaceNumber = action.includes('vr1') ? 1 : 2;
       if (action.startsWith('archive_temperature_')) {
         chartType = 'температуры';
         chartTitle = `График температуры печи карбонизации №${furnaceNumber} за сутки`;
@@ -71,7 +71,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
     } else if (action === 'help') {
       await handleHelp(bot, chatId, query.message.message_id);
     } else if (action.startsWith('get_dose_notis_')) {
-      const furnaceNumber = action.includes('1') ? 1 : 2;
+      const furnaceNumber = action.includes('vr1') ? 1 : 2;
       const data = app.locals.data;
 
       // Получаем последние 5 значений "Кг/час"
@@ -89,7 +89,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
       const buttonSet = [
         [
           { text: 'Обновить', callback_data: action },
-          { text: 'Назад', callback_data: `furnace_${furnaceNumber}` },
+          { text: 'Назад', callback_data: `furnace_vr${furnaceNumber}` },
         ],
       ];
       await bot.editMessageText(doseTable, {
@@ -120,8 +120,8 @@ export const handleCallbackQuery = async (bot, app, query) => {
       });
     } else {
       const actionMap = {
-        furnace_1: 'Печь карбонизации №1',
-        furnace_2: 'Печь карбонизации №2',
+        furnace_vr1: 'Печь карбонизации №1',
+        furnace_vr2: 'Печь карбонизации №2',
         furnace_mpa2: 'Печь МПА2',
         furnace_mpa3: 'Печь МПА3',
         back_to_main: 'Выберите интересующую опцию:',

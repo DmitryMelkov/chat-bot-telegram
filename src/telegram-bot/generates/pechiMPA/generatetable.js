@@ -64,6 +64,7 @@ export const generateTableMpa = (data, mpaNumber, currentTime) => {
   // Объединение всех параметров в один массив
   const parameters = [
     `Режим работы МПА${mpaNumber}`,
+    '',
     `Время записи на сервер: ${serverTime}`,
     '',
     'Температуры:',
