@@ -311,7 +311,7 @@ export async function fetchData() {
 
     for (const [key, value] of Object.entries(namedData)) {
       try {
-        const response = await axios.post('http://169.254.7.86:3001/update-values', JSON.stringify({ [key]: value }), {
+        const response = await axios.post('http://169.254.6.19:3001/update-values', JSON.stringify({ [key]: value }), {
           headers: {
             'Content-Type': 'application/json',
           },

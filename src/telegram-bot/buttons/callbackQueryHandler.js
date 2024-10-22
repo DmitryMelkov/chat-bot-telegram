@@ -23,7 +23,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
 
       const table = generateTablePechVr(data, furnaceNumber, currentTime);
       const buttonSet = [
-        [{ text: 'Алармы', callback_data: `check_alarms_${furnaceNumber}` }],
+        [{ text: 'Алармы', callback_data: `check_alarms_vr${furnaceNumber}` }],
         [{ text: 'Обновить', callback_data: action }],
         [{ text: 'Назад', callback_data: `furnace_vr${furnaceNumber}` }],
       ];

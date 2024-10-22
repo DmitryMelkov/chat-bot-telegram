@@ -70,13 +70,16 @@ export const handleTextMessage = async (bot, app, msg) => {
 
   if (state) {
     let furnaceNumber;
+    let furnaceType;
     let menu;
 
     if (state.action.includes('vr1') || state.action.includes('vr2')) {
       furnaceNumber = state.action.includes('vr1') ? 1 : 2;
+      furnaceType = 'vr'; // Определяем тип печи как 'vr'
       menu = furnaceNumber === 1 ? charts_archive_vr1 : charts_archive_vr2;
     } else if (state.action.includes('mpa2') || state.action.includes('mpa3')) {
       furnaceNumber = state.action.includes('mpa2') ? 2 : 3;
+      furnaceType = 'mpa'; // Определяем тип печи как 'mpa'
       menu = furnaceNumber === 2 ? charts_archive_mpa2 : charts_archive_mpa3;
     }
 
@@ -162,13 +165,18 @@ export const handleTextMessage = async (bot, app, msg) => {
         await bot.deleteMessage(chatId, loadingMessage.message_id);
       }
 
+      // Формируем корректное значение для callback_data с учетом типа печи
       await bot.sendMessage(chatId, `Ошибка: нет данных за этот период, либо вы ввели некорректную дату. Пожалуйста, попробуйте еще раз или нажмите "Назад" для выхода.`, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: 'Назад', callback_data: `furnace_${furnaceNumber === 1 ? 'vr' : 'mpa'}${furnaceNumber}` }]
+            [{ text: 'Назад', callback_data: furnaceType === 'vr' 
+              ? `furnace_vr${furnaceNumber}` 
+              : `furnace_mpa${furnaceNumber}`
+            }]
           ]
         }
       });
     }
   }
 };
+

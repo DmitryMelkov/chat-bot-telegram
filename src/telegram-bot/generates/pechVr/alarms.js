@@ -180,10 +180,10 @@ const mode = determineFurnaceMode();
   // Добавляем кнопки "Назад", "Обновить данные" и "Текущие параметры"
   const buttons = [
     [
-      { text: 'Текущие параметры', callback_data: `get_temperature_${furnaceNumber}` }, // Кнопка Текущие параметры
-      { text: 'Обновить', callback_data: `check_alarms_${furnaceNumber}` },
+      { text: 'Текущие параметры', callback_data: `get_params_vr${furnaceNumber}` }, // Кнопка Текущие параметры
+      { text: 'Обновить', callback_data: `check_alarms_vr${furnaceNumber}` },
     ],
-    [{ text: 'Назад', callback_data: `furnace_${furnaceNumber}` }],
+    [{ text: 'Назад', callback_data: `furnace_vr${furnaceNumber}` }],
   ];
 
   // Обновляем текущее сообщение
