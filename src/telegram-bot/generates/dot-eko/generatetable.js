@@ -72,7 +72,7 @@ export const generateTableDotEko = (data, currentTime) => {
     formatParameter('Сумма двух лыж', 'Сумма двух лыж ДОТ-ЭКО'),
   ];
 
-  const rezhim = formatRezhim('Режим работы', 'Статус работы ДОТ-ЭКО');
+  const rezhim = formatRezhim('Статус работы', 'Статус работы ДОТ-ЭКО');
 
   const brak = formatBrak('Брак', 'Брак ДОТ-ЭКО');
 

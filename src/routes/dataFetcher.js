@@ -45,7 +45,12 @@ export async function fetchData() {
       'Время работы ДОТ-ЭКО': dotEkoData.shiftTime,
       'Сумма двух лыж ДОТ-ЭКО': dotEkoData.totalSki,
       'Статус работы ДОТ-ЭКО': dotEkoData.lineStatusValue,
-      'Время записи на сервер ДОТ-ЭКО': dotEkoData.lastUpdated
+      'Время записи на сервер ДОТ-ЭКО': dotEkoData.lastUpdated,
+      'Лыжа левая рапорт ДОТ-ЭКО': dotEkoData.leftSkiReport,
+      'Лыжа правая рапорт ДОТ-ЭКО': dotEkoData.rightSkiReport,
+      'Брак рапорт ДОТ-ЭКО': dotEkoData.defectReport,
+      'Сумма двух лыж рапорт ДОТ-ЭКО': dotEkoData.totalSkiReport,
+      'Время работы рапорт ДОТ-ЭКО': dotEkoData.workTime,
     };
   
     const categoriesPechiVr = {

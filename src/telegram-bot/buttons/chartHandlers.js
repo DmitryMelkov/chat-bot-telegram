@@ -1,6 +1,6 @@
 import { chartGenerators } from './chartGenerators.js';
 import { sendMessageWithButtons } from '../sendMessage.js';
-import { getButtonsByAction } from '../buttons/buttonSets.js';
+import { getButtonsByAction } from './carbon/buttonSets.js';
 
 export const handleChartGeneration = async (bot, chatId, action) => {
   const generateChart = chartGenerators[action];

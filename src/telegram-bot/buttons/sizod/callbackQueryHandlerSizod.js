@@ -1,6 +1,7 @@
 import { getButtonsByActionSizod } from './buttonSetsSizod.js';
 import { handleChartGeneration } from '../chartHandlers.js';
 import { generateTableDotEko, dotEkoKeys } from '../../generates/dot-eko/generatetable.js';
+import { generateDailyReportDotEko, generateMonthlyReportDotEko } from '../../generates/dot-eko/generateReports.js';
 
 export const handleCallbackQuerySizod = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -52,7 +53,44 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
         reply_markup: { inline_keyboard: buttonSet },
       });
     } else if (action === 'sizod_report_eko') {
-      await bot.sendMessage(chatId, 'Отчет для Дот-Эко');
+      // Показываем кнопки отчетов для ДОТ-ЭКО
+      const buttonSet = getButtonsByActionSizod('sizod_report_eko');
+      await bot.editMessageText('Выберите тип отчета для Дот-Эко:', {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: { inline_keyboard: buttonSet },
+      });
+    } else if (action === 'sizod_daily_report_eko') {
+      // Генерируем суточный отчет
+      const report = await generateDailyReportDotEko();
+
+      // Отправляем отчет с кнопками
+      const buttonSet = [
+        [{ text: 'Обновить', callback_data: 'sizod_daily_report_eko' }],
+        [{ text: 'Назад', callback_data: 'sizod_report_eko' }],
+      ];
+
+      await bot.editMessageText(report, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: { inline_keyboard: buttonSet },
+      });
+    } else if (action === 'sizod_monthly_report_eko') {
+      // Генерируем суточный отчет
+      const report = await generateMonthlyReportDotEko();
+
+      // Отправляем отчет с кнопками
+      const buttonSet = [
+        [{ text: 'Обновить', callback_data: 'sizod_monthly_report_eko' }],
+        [{ text: 'Назад', callback_data: 'sizod_report_eko' }],
+      ];
+
+      await bot.editMessageText(report, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: { inline_keyboard: buttonSet },
+      });
+
     } else if (action.startsWith('sizod_charts_eko')) {
       await handleChartGeneration(bot, chatId, action);
     } else if (action.startsWith('sizod_archive_')) {

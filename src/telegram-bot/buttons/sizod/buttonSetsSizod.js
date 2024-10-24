@@ -18,6 +18,13 @@ export const getButtonsByActionSizod = (action) => {
       ],
       [{ text: 'Назад', callback_data: 'production_sizod' }],
     ],
+    sizod_report_eko: [
+      [
+        { text: 'Суточный отчет', callback_data: 'sizod_daily_report_eko' },
+        { text: 'Месячный отчет', callback_data: 'sizod_monthly_report_eko' },
+      ],
+      [{ text: 'Назад', callback_data: 'sizod_dot_eko' }],
+    ],
     sizod_dot_pro: [
       [
         { text: 'Текущие параметры', callback_data: 'sizod_get_params_pro' },
