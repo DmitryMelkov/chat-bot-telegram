@@ -1,4 +1,5 @@
 import { getButtonsByAction } from '../buttons/buttonSets.js';
+import { handleCallbackQuerySizod } from './sizod/callbackQueryHandlerSizod.js'; // Импорт нового обработчика
 import { handleChartGeneration } from '../buttons/chartHandlers.js';
 import { generateTablePechVr } from '../generates/pechVr/generatetable.js';
 import { checkAndNotify } from '../generates/pechVr/alarms.js';
@@ -14,6 +15,13 @@ export const handleCallbackQuery = async (bot, app, query) => {
   const action = query.data;
 
   await bot.answerCallbackQuery(query.id);
+
+// Если действие связано с Сизод
+if (action.startsWith('sizod_') || action.includes('sizod')) {
+  await handleCallbackQuerySizod(bot, app, query);
+  return;
+}
+
 
   try {
     if (action.startsWith('get_params_vr')) {

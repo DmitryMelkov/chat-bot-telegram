@@ -20,6 +20,10 @@ export async function fetchData() {
       'http://techsite4/kaskad/Web_Clnt.dll/ShowPage?production/carbon/pechiMPA/MPATelegram.htm',
       { responseType: 'arraybuffer' } // Указываем тип ответа
     );
+    // Делаем так, потому что данные берем при помощи "своей" СКАДЫ
+    // Добавляем страницу для СИЗОД
+    const responseDotEko = await axios.get('http://169.254.7.86:3002/api/mongo-value');
+    const dotEkoData = responseDotEko.data;
 
     // Преобразуем данные в нужную кодировку (Windows-1251)
     const decodedDataPechiVr = iconv.decode(Buffer.from(responsePechiVr.data), 'windows-1251');
@@ -33,6 +37,17 @@ export async function fetchData() {
 
     const extractData = (selectors, $) => selectors.map((selector) => $(selector).text().trim());
 
+      // Пример получения данных для DotEKO, названия переменных берутся с .../api/mongo-value
+    const namedDotEkoData = {
+      'Лыжа левая ДОТ-ЭКО': dotEkoData.leftSki,
+      'Лыжа правая ДОТ-ЭКО': dotEkoData.rightSki,
+      'Брак ДОТ-ЭКО': dotEkoData.defect,
+      'Время работы ДОТ-ЭКО': dotEkoData.shiftTime,
+      'Сумма двух лыж ДОТ-ЭКО': dotEkoData.totalSki,
+      'Статус работы ДОТ-ЭКО': dotEkoData.lineStatusValue,
+      'Время записи на сервер ДОТ-ЭКО': dotEkoData.lastUpdated
+    };
+  
     const categoriesPechiVr = {
       temperatureVr1: [
         '.bot-vr1-temper-1-skolz',
@@ -308,6 +323,8 @@ export async function fetchData() {
       'Давление Верх дальний правый МПА3': data.pressureMpa3[10],
       'Время записи на сервер МПА3': data.timeMPA[0],
     };
+
+    Object.assign(namedData, namedDotEkoData);
 
     for (const [key, value] of Object.entries(namedData)) {
       try {

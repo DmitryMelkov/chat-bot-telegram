@@ -9,6 +9,9 @@ export const getButtonsByAction = (action) => {
         { text: 'МПА 2', callback_data: 'furnace_mpa2' },
         { text: 'МПА 3', callback_data: 'furnace_mpa3' },
       ],
+      [
+        { text: 'Назад', callback_data: 'back_to_main' },
+      ]
     ],
     furnace_vr1: [
       [
@@ -244,11 +247,13 @@ export const getButtonsByAction = (action) => {
       ],
       [{ text: 'Назад', callback_data: 'furnace_mpa3' }],
     ],
-    back_to_production: [[{ text: 'Карбон', callback_data: 'production_carbon' }]],
+    back_to_production: [[{ text: 'Карбон', callback_data: 'production_carbon' },
+                          { text: 'Сизод', callback_data: 'production_sizod' }]],
     help: [[{ text: 'Назад', callback_data: 'back_to_main' }]],
     back_to_main: [
       [
         { text: 'Карбон', callback_data: 'production_carbon' },
+        { text: 'Сизод', callback_data: 'production_sizod'  },
         { text: 'Справка', callback_data: 'help' },
       ],
     ],
