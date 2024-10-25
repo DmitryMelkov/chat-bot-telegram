@@ -249,12 +249,10 @@ export const getButtonsByAction = (action) => {
     ],
     back_to_production: [[{ text: 'Карбон', callback_data: 'production_carbon' },
                           { text: 'Сизод', callback_data: 'production_sizod' }]],
-    help: [[{ text: 'Назад', callback_data: 'back_to_main' }]],
     back_to_main: [
       [
         { text: 'Карбон', callback_data: 'production_carbon' },
         { text: 'Сизод', callback_data: 'production_sizod'  },
-        { text: 'Справка', callback_data: 'help' },
       ],
     ],
   };

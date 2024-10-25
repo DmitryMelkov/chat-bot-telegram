@@ -1,4 +1,4 @@
-import { generateDoseChartArchiveVR1, generateDoseChartArchiveVR2 } from '../generates/notis/generateArchives.js';
+import { generateDoseChartArchiveVR1, generateDoseChartArchiveVR2 } from '../../generates/notis/generateArchives.js';
 import {
   generateDose12HourChartVR1,
   generateDose12HourChartVR2,
@@ -6,7 +6,7 @@ import {
   generateDose24HourChartVR2,
   generateDoseOneHourChartVR1,
   generateDoseOneHourChartVR2,
-} from '../generates/notis/generateCharts.js';
+} from '../../generates/notis/generateCharts.js';
 import {
   generatePressure12HourChartMPA2,
   generatePressure12HourChartMPA3,
@@ -20,7 +20,7 @@ import {
   generateTemperature24HourChartMPA3,
   generateTemperatureOneHourChartMPA2,
   generateTemperatureOneHourChartMPA3,
-} from '../generates/pechiMPA/generateCharts.js';
+} from '../../generates/pechiMPA/generateCharts.js';
 import {
   generateTemperature24HourChartVR1,
   generateTemperature24HourChartVR2,
@@ -40,7 +40,7 @@ import {
   generateLevelOneHourChartVR2,
   generateLevel12HourChartVR1,
   generateLevel12HourChartVR2,
-} from '../generates/pechVr/generateCharts.js';
+} from '../../generates/pechVr/generateCharts.js';
 
 export const chartGenerators = {
   // Для ВР1

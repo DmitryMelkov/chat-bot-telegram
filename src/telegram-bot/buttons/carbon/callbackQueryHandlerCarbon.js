@@ -4,8 +4,8 @@ import { generateDoseTableNotis } from '../../generates/notis/generateTable.js';
 import { NotisVR1, NotisVR2 } from '../../../models/NotisModel.js';
 import { checkLoading, getLastValuesNotis } from '../../../routes/updateValues.js';
 import { generateTableMpa } from '../../generates/pechiMPA/generatetable.js';
-import { handleChartGeneration } from '../../buttons/chartHandlers.js';
-import { chartGenerators } from '../../buttons/chartGenerators.js';
+import { handleChartGeneration } from './chartHandlers.js';
+import { chartGenerators } from './chartGenerators.js';
 import { getButtonsByAction } from './buttonSets.js';
 
 export const handleCallbackQueryCarbon = async (bot, app, query) => {

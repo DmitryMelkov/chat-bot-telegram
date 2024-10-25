@@ -19,6 +19,7 @@
     "chartjs-adapter-date-fns": "^3.0.0",
     "chartjs-node-canvas": "^4.1.6",
     "chartjs-plugin-annotation": "^2.0.0",
+    "chartjs-plugin-datalabels": "^2.2.0",
     "cheerio": "^1.0.0",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",

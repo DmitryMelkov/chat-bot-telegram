@@ -5,6 +5,7 @@ import mongoose from 'mongoose';
 import { config } from './config/config.js';
 import { updateValuesRoute } from './routes/updateValues.js';
 import { fetchData } from './routes/dataFetcher.js';
+import { fetchDataSizod } from './routes/dataFetcherSizod.js';
 import createTelegramBot from './telegram-bot/telegramBot.js';
 import fs from 'fs';
 
@@ -71,6 +72,7 @@ process.on('unhandledRejection', (reason, promise) => {
 updateValuesRoute(app);
 
 fetchData();
+fetchDataSizod();
 
 // Обработка ошибок маршрутов и других middleware
 app.use((err, req, res, next) => {
