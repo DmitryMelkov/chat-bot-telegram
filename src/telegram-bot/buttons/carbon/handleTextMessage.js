@@ -1,5 +1,5 @@
-import { generateDoseChartArchiveVR1, generateDoseChartArchiveVR2 } from '../generates/notis/generateArchives.js';
-import { generatePressureChartArchiveMPA2, generatePressureChartArchiveMPA3, generateTemperatureChartArchiveMPA2, generateTemperatureChartArchiveMPA3 } from '../generates/pechiMPA/generateArchives.js';
+import { generateDoseChartArchiveVR1, generateDoseChartArchiveVR2 } from '../../generates/notis/generateArchives.js';
+import { generatePressureChartArchiveMPA2, generatePressureChartArchiveMPA3, generateTemperatureChartArchiveMPA2, generateTemperatureChartArchiveMPA3 } from '../../generates/pechiMPA/generateArchives.js';
 import {
   generateTemperatureChartArchiveVR1,
   generateTemperatureChartArchiveVR2,
@@ -7,7 +7,7 @@ import {
   generatePressureChartArchiveVR2,
   generateWaterLevelChartArchiveVR1,
   generateWaterLevelChartArchiveVR2,
-} from '../generates/pechVr/generateArchives.js';
+} from '../../generates/pechVr/generateArchives.js';
 
 // Определяем меню для печи 1
 const charts_archive_vr1 = [
@@ -179,4 +179,3 @@ export const handleTextMessage = async (bot, app, msg) => {
     }
   }
 };
-

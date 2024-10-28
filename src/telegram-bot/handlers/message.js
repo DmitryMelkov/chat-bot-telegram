@@ -1,5 +1,5 @@
 import { handleAuth } from './auth.js';
-import { handleTextMessage } from '../buttons/handleTextMessage.js';
+import { handleTextMessage } from '../buttons/carbon/handleTextMessage.js';
 
 export const handleMessage = async (bot, app, msg) => {
   const chatId = msg.chat.id;

@@ -15,7 +15,12 @@ export const handleCallbackQuery = async (bot, app, query) => {
   }
 
   // Если действие связано с Карбоном (печи ВР, Notis, MPA)
-  if (action.startsWith('get_params_vr') || action.startsWith('get_dose_notis_') || action.startsWith('get_params_mpa')) {
+  if (action.startsWith('get_params_vr') || action.startsWith('check_alarms_') || action.startsWith('get_dose_notis_') || action.startsWith('get_params_mpa')) {
+    await handleCallbackQueryCarbon(bot, app, query);
+    return;
+  }
+
+  if (action.startsWith('chart_') || action.startsWith('archive_')) {
     await handleCallbackQueryCarbon(bot, app, query);
     return;
   }
