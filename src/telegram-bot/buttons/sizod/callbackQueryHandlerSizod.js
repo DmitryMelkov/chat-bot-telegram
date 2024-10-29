@@ -55,6 +55,17 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
+    } else if (action === 'sizod_report_archive_eko') {
+      // Обработка нажатия на кнопку "Архив Отчетов"
+      const message = 'Введите дату для отчета:\n- В формате `dd.mm.yyyy` для суточного отчета\n- В формате `mm.yyyy` для месячного отчета';
+      const sentMessage = await bot.sendMessage(chatId, message, { parse_mode: 'Markdown' });
+
+      // Сохраняем состояние, чтобы ожидать дату от пользователя
+      app.locals.userStates = app.locals.userStates || {};
+      app.locals.userStates[chatId] = {
+        action: 'sizod_archive_report',
+        messageId: sentMessage.message_id
+      };
     } else if (action === 'sizod_daily_report_eko') {
       const report = await generateDailyReportDotEko();
 
@@ -92,8 +103,8 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
       const isDaily = action === 'sizod_daily_chart_eko';
       const period = isDaily ? 'daily' : 'monthly';
       const title = isDaily ? 'Суточный график ДОТ-ЭКО' : 'Месячный график ДОТ-ЭКО';
-      const model = action.includes('eko') ? DotEKO : DotPro; // Замените DotPro на нужную модель, если требуется
-      const key = 'Сумма двух лыж рапорт ДОТ-ЭКО'; // Измените ключ, если для разных периодов он различается
+      const model = action.includes('eko') ? DotEKO : DotPro;
+      const key = 'Сумма двух лыж рапорт ДОТ-ЭКО';
 
       // Прелоудер
       const preloadMessage = await bot.sendMessage(chatId, 'Генерация графика, пожалуйста, подождите...');

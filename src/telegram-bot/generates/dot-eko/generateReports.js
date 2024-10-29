@@ -2,12 +2,11 @@ import { DotEKO } from '../../../models/SizodModel.js';
 import moment from 'moment';
 
 // Функция для генерации суточного отчета
-export const generateDailyReportDotEko = async () => {
+export const generateDailyReportDotEko = async (dateString = null) => {
   try {
-    const startDate = moment().startOf('day'); // Начало текущего дня (00:00)
-    const endDate = moment(); // Текущая дата и время
+    const startDate = dateString ? moment(dateString, 'DD.MM.YYYY').startOf('day') : moment().startOf('day');
+    const endDate = dateString ? moment(dateString, 'DD.MM.YYYY').endOf('day') : moment();
 
-    // Извлекаем данные за текущий день
     const reportData = await DotEKO.find({
       key: { 
         $in: [
@@ -26,7 +25,6 @@ export const generateDailyReportDotEko = async () => {
       return 'Данных за текущий день нет.';
     }
 
-    // Создаем интервалы по часам
     const intervals = [];
     let currentHour = startDate.clone();
 
@@ -42,7 +40,6 @@ export const generateDailyReportDotEko = async () => {
       currentHour = nextHour;
     }
 
-    // Инициализируем данные по интервалам
     const hourlyData = {};
     intervals.forEach(interval => {
       hourlyData[interval.label] = {
@@ -53,7 +50,6 @@ export const generateDailyReportDotEko = async () => {
       };
     });
 
-    // Группируем данные по интервалам
     reportData.forEach((entry) => {
       const entryTime = moment(entry.timestamp);
       const interval = intervals.find(interval => entryTime.isSameOrAfter(interval.start) && entryTime.isBefore(interval.end));
@@ -66,15 +62,14 @@ export const generateDailyReportDotEko = async () => {
       }
     });
 
-    // Формируем отчет по часам и суммируем изделия
     let reportText = '*Суточный отчет ДОТ-ЭКО:*\n\n';
     reportText += '`Вр.  | Изд-ия  | Брак  | Вр. работы` \n\n';
 
-    let totalDailySkiDiff = 0; // Инициализация суммы изделий за день
+    let totalDailySkiDiff = 0;
 
     Object.entries(hourlyData).forEach(([hour, data]) => {
       const getDifference = (values) => {
-        if (values.length === 0) return 'Нет данных';
+        if (values.length === 0) return 0;
         const max = Math.max(...values);
         const min = Math.min(...values);
         return max - min;
@@ -85,37 +80,27 @@ export const generateDailyReportDotEko = async () => {
       const defectDiff = getDifference(data.defectReport);
       let workTimeDiff = getDifference(data.workTime);
 
-      // Округляем время работы до сотых
-      if (workTimeDiff !== 'Нет данных') {
+      if (workTimeDiff !== 0) {
         workTimeDiff = workTimeDiff.toFixed(2);
       }
 
-      // Фиксированная ширина для каждого столбца
-      const totalSkiDiff = rightSkiDiff !== 'Нет данных' && leftSkiDiff !== 'Нет данных' 
-          ? (rightSkiDiff + leftSkiDiff) 
-          : 0;
+      const totalSkiDiff = rightSkiDiff + leftSkiDiff;
 
-      // Если есть данные, добавляем к итогу
       if (totalSkiDiff) {
         totalDailySkiDiff += totalSkiDiff;
       }
 
-      const totalSkiText = totalSkiDiff ? totalSkiDiff.toString().padStart(4) + ' шт.' : 'Нет данных'.padStart(8);
-      const defectText = defectDiff !== 'Нет данных' 
-          ? defectDiff.toString().padStart(3) + ' шт.' 
-          : 'Нет данных'.padStart(5);
-      const workTimeText = workTimeDiff !== 'Нет данных' 
-          ? workTimeDiff.toString().padStart(5) + ' ч.' 
-          : 'Нет данных'.padStart(10);
+      const totalSkiText = totalSkiDiff ? totalSkiDiff + ' шт.' : '0 шт.';
+      const defectText = defectDiff ? defectDiff + ' шт.' : '0 шт.';
+      const workTimeText = workTimeDiff ? workTimeDiff + ' ч.' : '0 ч.';
 
       reportText += `\`${hour.padStart(5)} | ${totalSkiText.padEnd(10)} | ${defectText.padEnd(6)} | ${workTimeText.padEnd(10)}\`\n`;
     });
 
     reportText += `\nИтого за сутки: ${totalDailySkiDiff} шт. изделий\n`;
 
-    // Добавляем текущее время обновления отчета
-    const currentTime = new Date().toLocaleString();
-    reportText += `\nОбновлено: ${currentTime.slice(0, 10)} ${currentTime.slice(10)}`;
+    const formattedDateString = dateString ? `Отчет сформирован за ${dateString}` : `Обновлено: ${new Date().toLocaleString()}`;
+    reportText += `\n${formattedDateString}\n`;
 
     return reportText;
   } catch (error) {
@@ -125,10 +110,10 @@ export const generateDailyReportDotEko = async () => {
 };
 
 // Функция для генерации месячного отчета
-export const generateMonthlyReportDotEko = async () => {
+export const generateMonthlyReportDotEko = async (dateString = null) => {
   try {
-    const startDate = moment().startOf('month').toDate(); // Начало месяца
-    const endDate = moment().endOf('month').toDate(); // Конец месяца
+    const startDate = dateString ? moment(dateString, 'MM.YYYY').startOf('month') : moment().startOf('month');
+    const endDate = dateString ? moment(dateString, 'MM.YYYY').endOf('month') : moment().endOf('month');
 
     const reportData = await DotEKO.find({
       key: { 
@@ -172,7 +157,7 @@ export const generateMonthlyReportDotEko = async () => {
 
     Object.entries(dailyData).forEach(([day, data]) => {
       const getDifference = (values) => {
-        if (values.length === 0) return 'Нет данных';
+        if (values.length === 0) return 0;
         const max = Math.max(...values);
         const min = Math.min(...values);
         return max - min;
@@ -181,30 +166,29 @@ export const generateMonthlyReportDotEko = async () => {
       const rightSkiDiff = getDifference(data.rightSkiReport);
       const leftSkiDiff = getDifference(data.leftSkiReport);
       const defectDiff = getDifference(data.defectReport);
-
       let workTimeDiff = getDifference(data.workTime);
 
-      if (workTimeDiff !== '-') {
+      if (workTimeDiff !== 0) {
         workTimeDiff = workTimeDiff.toFixed(2);
       }
 
-      const totalSkiDiff = rightSkiDiff && leftSkiDiff ? rightSkiDiff + leftSkiDiff : 0;
+      const totalSkiDiff = rightSkiDiff + leftSkiDiff;
 
       if (totalSkiDiff) {
         totalMonthlySkiDiff += totalSkiDiff;
       }
 
-      const totalSkiText = totalSkiDiff ? totalSkiDiff + ' шт.' : 'Нет данных';
-      const defectText = defectDiff !== 0 ? defectDiff + ' шт.' : '0 шт.';
-      const workTimeText = workTimeDiff ? workTimeDiff + ' ч.' : 'Нет данных';
+      const totalSkiText = totalSkiDiff ? totalSkiDiff + ' шт.' : '0 шт.';
+      const defectText = defectDiff ? defectDiff + ' шт.' : '0 шт.';
+      const workTimeText = workTimeDiff ? workTimeDiff + ' ч.' : '0 ч.';
 
       reportText += `\`${day} | ${totalSkiText.padEnd(10)} | ${defectText.padEnd(5)} | ${workTimeText.padEnd(10)}\`\n`;
     });
 
-    reportText += `\nИтого за месяц: ${totalMonthlySkiDiff} шт. изделий\n`;
+    reportText += `\nИтого за месяц:  ${totalMonthlySkiDiff} шт. изделий\n`;
 
-    const currentTime = new Date().toLocaleString();
-    reportText += `\nОбновлено: ${currentTime.slice(0, 10)} ${currentTime.slice(10)}`;
+    const formattedDateString = dateString ? `Отчет сформирован за ${dateString}` : `Обновлено: ${new Date().toLocaleString()}`;
+    reportText += `\n${formattedDateString}\n`;
 
     return reportText;
   } catch (error) {

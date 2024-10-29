@@ -1,4 +1,3 @@
-// chartConfig.js
 import ChartDataLabels from 'chartjs-plugin-datalabels';
 
 export const getChartConfig = ({ labels, data, title }) => {

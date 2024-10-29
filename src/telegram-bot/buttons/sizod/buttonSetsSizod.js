@@ -14,7 +14,7 @@ export const getButtonsByActionSizod = (action) => {
       ],
       [
         { text: 'Графики', callback_data: 'sizod_charts_eko' },
-        { text: 'Архив Графиков', callback_data: 'sizod_charts_archive_eko' },
+        { text: 'Архив Отчетов', callback_data: 'sizod_report_archive_eko' },
       ],
       [{ text: 'Назад', callback_data: 'production_sizod' }],
     ],
