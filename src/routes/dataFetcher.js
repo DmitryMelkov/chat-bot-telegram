@@ -20,7 +20,7 @@ export async function fetchData() {
       'http://techsite4/kaskad/Web_Clnt.dll/ShowPage?production/carbon/pechiMPA/MPATelegram.htm',
       { responseType: 'arraybuffer' } // Указываем тип ответа
     );
- 
+
     // Преобразуем данные в нужную кодировку (Windows-1251)
     const decodedDataPechiVr = iconv.decode(Buffer.from(responsePechiVr.data), 'windows-1251');
     const decodedDataNotis = iconv.decode(Buffer.from(responseNotis.data), 'windows-1251');
@@ -32,7 +32,7 @@ export async function fetchData() {
     const $Mpa = cheerio.load(decodedDataMpa);
 
     const extractData = (selectors, $) => selectors.map((selector) => $(selector).text().trim());
-  
+
     const categoriesPechiVr = {
       temperatureVr1: [
         '.bot-vr1-temper-1-skolz',
@@ -311,7 +311,7 @@ export async function fetchData() {
 
     for (const [key, value] of Object.entries(namedData)) {
       try {
-        const response = await axios.post('http://169.254.6.19:3001/update-values', JSON.stringify({ [key]: value }), {
+        const response = await axios.post('http://169.254.7.86:3001/update-values', JSON.stringify({ [key]: value }), {
           headers: {
             'Content-Type': 'application/json',
           },

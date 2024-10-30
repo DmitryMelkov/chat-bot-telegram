@@ -252,7 +252,7 @@ export const getButtonsByAction = (action) => {
     back_to_main: [
       [
         { text: 'Карбон', callback_data: 'production_carbon' },
-        { text: 'Сизод', callback_data: 'production_sizod'  },
+        // { text: 'Сизод', callback_data: 'production_sizod'  },
       ],
     ],
   };
