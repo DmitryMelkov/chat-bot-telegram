@@ -6,7 +6,7 @@ const startMessage = (bot, chatId, command) => {
     sendMessageWithButtons(bot, chatId, 'Выберите интересующую опцию:', [
       [
         { text: 'Карбон', callback_data: 'production_carbon' },
-        // { text: 'Сизод', callback_data: 'production_sizod' },
+        { text: 'Сизод', callback_data: 'production_sizod' },
       ],
     ]);
   }

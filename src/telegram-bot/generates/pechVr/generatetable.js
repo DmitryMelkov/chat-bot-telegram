@@ -13,13 +13,25 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
       return '✅ ';
     }
 
-    const transformedValue = parseFloat(value.replace(',', '.'));
+    // Убедимся, что value является числом
+    const transformedValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : value;
+    
+    // Проверка, является ли transformedValue числом
+    if (isNaN(transformedValue)) {
+      return '❌ ';
+    }
+
     return transformedValue >= min && transformedValue <= max ? '✅ ' : '❌ ';
   };
 
   // Функция для определения режима печи
   const determineFurnaceMode = () => {
-    const temper1SkolzVr1 = parseFloat(data[`Температура 1-СК печь ВР${furnaceNumber}`].replace(',', '.'));
+    const tempKey = `Температура 1-СК печь ВР${furnaceNumber}`;
+    const temper1SkolzVr1 = typeof data[tempKey] === 'string' ? parseFloat(data[tempKey].replace(',', '.')) : data[tempKey];
+
+    if (isNaN(temper1SkolzVr1)) {
+      return 'Неверное значение температуры';
+    }
 
     if (temper1SkolzVr1 < 550 && temper1SkolzVr1 > 50) {
       return 'Выход на режим';
@@ -81,8 +93,8 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
 
   // Параметры давления
   const pressures = [
-    formatPressure('Газов после скруббера', `Давление газов после скруббера печь ВР${furnaceNumber}`, 0, 20, 'кгс/см2'),
-    formatPressure('Пара в барабане котла', `Давление пара в барабане котла печь ВР${furnaceNumber}`, 0, 10, 'кгс/см2'),
+    formatPressure('Газов после скруббера', `Давление газов после скруббера печь ВР${furnaceNumber}`, 0, 20, 'кгс/см²'),
+    formatPressure('Пара в барабане котла', `Давление пара в барабане котла печь ВР${furnaceNumber}`, 0, 10, 'кгс/см²'),
   ];
 
   // Форматирование разрежения
@@ -93,20 +105,20 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
 
   // Параметры разрежения
   const vacuums = [
-    formatVacuum('В топке печи', `Разрежение в топке печи печь ВР${furnaceNumber}`, -4, -1, 'кгс/м2'),
+    formatVacuum('В топке печи', `Разрежение в топке печи печь ВР${furnaceNumber}`, -4, -1, 'кгс/м²'),
     formatVacuum(
       'В котле утилизаторе',
       `Разрежение в пространстве котла утилизатора печь ВР${furnaceNumber}`,
       -12,
       -3,
-      'кгс/м2'
+      'кгс/м²'
     ),
     formatVacuum(
       'Низ загрузочной камеры',
       `Разрежение низ загрузочной камеры печь ВР${furnaceNumber}`,
       -5,
       -1,
-      'кгс/м2'
+      'кгс/м²'
     ),
   ];
 
@@ -119,7 +131,7 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
   };
 
   // Параметры исполнительных механизмов
-  const ims = [formatIm('Котла-утилизатора', `Исполнительный механизм котла печь ВР${furnaceNumber}`, '%')];
+  const ims = [formatIm('Котел-утилизатор', `Исполнительный механизм котла печь ВР${furnaceNumber}`, '%')];
 
   // Форматирование мощности горелки
   const formatGorelka = (label, key, unit) => {

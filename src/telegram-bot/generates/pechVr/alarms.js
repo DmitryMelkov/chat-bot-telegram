@@ -1,7 +1,8 @@
 import { editMessageWithButtons } from '../../editMessage.js';
 
 export const checkAndNotify = (data, bot, chatId, furnaceNumber, messageId) => {
-  const temper1Skolz = parseFloat(data[`Температура 1-СК печь ВР${furnaceNumber}`].replace(',', '.'));
+  // Получаем числовые значения напрямую без .replace
+  const temper1Skolz = data[`Температура 1-СК печь ВР${furnaceNumber}`];
   const temper2kolz = data[`Температура 2-СК печь ВР${furnaceNumber}`];
   const temper3Skolz = data[`Температура 3-СК печь ВР${furnaceNumber}`];
   const temperTopka = data[`Температура в топке печь ВР${furnaceNumber}`];
@@ -23,29 +24,31 @@ export const checkAndNotify = (data, bot, chatId, furnaceNumber, messageId) => {
   const razrezenieKotla = data[`Разрежение в пространстве котла утилизатора печь ВР${furnaceNumber}`];
   const razrezenieNizZagruz = data[`Разрежение низ загрузочной камеры печь ВР${furnaceNumber}`];
   const timeRecorded = data[`Время записи на сервер для печь ВР${furnaceNumber}`]; // Время записи на сервер
+
+  // Форматирование времени записи
   const formattedTimeRecorded = `${timeRecorded.slice(0, 10)} ${timeRecorded.slice(10)}`;
 
+  // Определение режима работы печи
+  const determineFurnaceMode = () => {
+    if (temper1Skolz < 550 && temper1Skolz > 50) {
+      return 'Выход на режим';
+    } else if (temper1Skolz >= 550) {
+      return 'Установившийся режим';
+    } else {
+      return 'Печь не работает';
+    }
+  };
 
- // Определение режима работы печи
- const determineFurnaceMode = () => {
-  if (temper1Skolz < 550 && temper1Skolz > 50) {
-    return 'Выход на режим';
-  } else if (temper1Skolz >= 550) {
-    return 'Установившийся режим';
-  } else {
-    return 'Печь не работает';
-  }
-};
-
-const mode = determineFurnaceMode();
+  const mode = determineFurnaceMode();
   let alerts = [];
 
   if (mode === 'Печь не работает') {
     alerts.push('✅ Алармов нету, т.к. печь не работает.');
   } else {
+    // Проверки для температурных параметров
     if (temper1Skolz < 550 || temper1Skolz > 800) {
       alerts.push(
-        `❓ Температура 1-СК печь ВР${furnaceNumber} = ${temper1Skolz} °C, допустимый диапазон от 550 до 800 \n`
+        `❓ Температура 1-СК печь ВР${furnaceNumber} = ${temper1Skolz} °C, допустимый диапазон от 550 до 800`
       );
     }
 
@@ -71,7 +74,12 @@ const mode = determineFurnaceMode();
       );
     }
 
-    // Добавлены проверки для остальных параметров
+    if (temperKamVygruzki < 0 || temperKamVygruzki > 750) {
+      alerts.push(
+        `❓ Температура камеры выгрузки печь ВР${furnaceNumber} = ${temperKamVygruzki} °C, допустимый диапазон от 0 до 750`
+      );
+    }
+    
     if (temperVverhKamerZagruz < 0 || temperVverhKamerZagruz > 1000) {
       alerts.push(
         `❓ Температура вверху камеры загрузки печь ВР${furnaceNumber} = ${temperVverhKamerZagruz} °C, допустимый диапазон от 0 до 1000`
@@ -96,20 +104,37 @@ const mode = determineFurnaceMode();
       );
     }
 
+    // Проверки для разрежения (строковые поля)
     const razrezenieTopkaTransform = parseFloat(razrezenieTopka.replace(',', '.'));
     if (razrezenieTopkaTransform < -4 || razrezenieTopkaTransform > -1) {
       alerts.push(
-        `❓ Разрежение в топке печи печь ВР${furnaceNumber} = ${razrezenieTopka} кгс/м2, допустимый диапазон от -4 до -1`
+        `❓ Разрежение в топке печи печь ВР${furnaceNumber} = ${razrezenieTopkaTransform} кгс/м², допустимый диапазон от -4 до -1`
       );
     }
 
     const razrezenieNizZagruzTransform = parseFloat(razrezenieNizZagruz.replace(',', '.'));
     if (razrezenieNizZagruzTransform < -5 || razrezenieNizZagruzTransform > -1) {
       alerts.push(
-        `❓ Разрежение низ загрузочной камеры печь ВР${furnaceNumber} = ${razrezenieNizZagruz} кгс/м2, допустимый диапазон от -5 до -1`
+        `❓ Разрежение низ загрузочной камеры печь ВР${furnaceNumber} = ${razrezenieNizZagruzTransform} кгс/м², допустимый диапазон от -5 до -1`
       );
     }
 
+    const razrezenieKotlaTransform = parseFloat(razrezenieKotla.replace(',', '.'));
+    if (razrezenieKotlaTransform < -12 || razrezenieKotlaTransform > -3) {
+      alerts.push(
+        `❓ Разрежение в пространстве котла утилизатора печь ВР${furnaceNumber} = ${razrezenieKotlaTransform} кгс/м², допустимый диапазон от -12 до -3`
+      );
+    }
+
+    // Проверки для давления (строковые поля)
+    const davlenieGazPosleSkrubberaTransform = parseFloat(davlenieGazPosleSkrubbera.replace(',', '.'));
+    if (davlenieGazPosleSkrubberaTransform < 0 || davlenieGazPosleSkrubberaTransform > 20) {
+      alerts.push(
+        `❓ Давление газов после скруббера печь ВР${furnaceNumber} = ${davlenieGazPosleSkrubberaTransform} кгс/см², допустимый диапазон от 0 до 20`
+      );
+    }
+
+    // Проверки для других температурных и уровневых параметров
     if (temperGazDoSkrubbera < 0 || temperGazDoSkrubbera > 400) {
       alerts.push(
         `❓ Температура газов до скруббера печь ВР${furnaceNumber} = ${temperGazDoSkrubbera} °C, допустимый диапазон от 0 до 400`
@@ -128,32 +153,13 @@ const mode = determineFurnaceMode();
       );
     }
 
-    const davlenieGazPosleSkrubberaTransform = parseFloat(davlenieGazPosleSkrubbera.replace(',', '.'));
-    if (davlenieGazPosleSkrubberaTransform < 0 || davlenieGazPosleSkrubberaTransform > 20) {
-      alerts.push(
-        `❓ Давление газов после скруббера печь ВР${furnaceNumber} = ${davlenieGazPosleSkrubbera} кгс/см2, допустимый диапазон от 0 до 20`
-      );
-    }
-
     if (temperDymGaza < 0 || temperDymGaza > 1100) {
       alerts.push(
         `❓ Температура дымовых газов котла печь ВР${furnaceNumber} = ${temperDymGaza} °C, допустимый диапазон от 0 до 1100`
       );
     }
 
-    const razrezenieKotlaTransform = parseFloat(razrezenieKotla.replace(',', '.'));
-    if (razrezenieKotlaTransform > -3 || razrezenieKotlaTransform < -12) {
-      alerts.push(
-        `❓ Разрежение в пространстве котла утилизатора печь ВР${furnaceNumber} = ${razrezenieKotla} кгс/м2, допустимый диапазон от -12 до -3`
-      );
-    }
-
-    if (temperKamVygruzki < 0 || temperKamVygruzki > 750) {
-      alerts.push(
-        `❓ Температура камеры выгрузки печь ВР${furnaceNumber} = ${temperKamVygruzki} °C, допустимый диапазон от 0 до 750`
-      );
-    }
-
+    // Проверки для уровней воды (числовые поля)
     if (urovVodaHVO < 1500 || urovVodaHVO > 4500) {
       alerts.push(
         `❓ Уровень воды в емкости ХВО печь ВР${furnaceNumber} = ${urovVodaHVO} мм, допустимый диапазон от 1500 до 4500`
@@ -174,7 +180,7 @@ const mode = determineFurnaceMode();
   }
 
   const alertMessage =
-    alerts.length > 0 ? alerts.map((alert) => `${alert}\n`).join('\n') : 'Все параметры в пределах нормы.\n';
+    alerts.length > 0 ? alerts.map((alert) => `${alert}`).join('\n') : '✅ Все параметры в пределах нормы.\n';
   const lastUpdated = new Date().toLocaleString(); // Получаем текущее время
 
   // Добавляем кнопки "Назад", "Обновить данные" и "Текущие параметры"
@@ -191,7 +197,7 @@ const mode = determineFurnaceMode();
     bot,
     chatId,
     messageId,
-    `Режим работы печи: ${mode}\nВремя записи на сервер: ${formattedTimeRecorded}\n\nАлармы:\n\n${alertMessage}\nПоследнее обновление: ${lastUpdated}`,
+    `Режим работы печи: ${mode}\nВремя записи на сервер: ${formattedTimeRecorded}\n\nАлармы:\n${alertMessage}\n\nПоследнее обновление: ${lastUpdated}`,
     buttons
   );
 };

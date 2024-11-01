@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import { config } from './config/config.js';
 import { updateValuesRoute } from './routes/updateValues.js';
-import { fetchData } from './routes/dataFetcher.js';
+import { fetchData, fetchDataVR } from './routes/dataFetcher.js';
 import { fetchDataSizod } from './routes/dataFetcherSizod.js';
 import createTelegramBot from './telegram-bot/telegramBot.js';
 import fs from 'fs';
@@ -72,6 +72,7 @@ process.on('unhandledRejection', (reason, promise) => {
 updateValuesRoute(app);
 
 fetchData();
+fetchDataVR();
 fetchDataSizod();
 
 // Обработка ошибок маршрутов и других middleware
@@ -82,6 +83,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   const timeStamp = new Date().toLocaleString();
-  console.log(`[${timeStamp}] Server is running on http://169.254.7.86:${PORT}`);
+  console.log(`[${timeStamp}] Server is running on http://169.254.6.19:${PORT}`);
   // console.log(`[${timeStamp}] Server is running on http://169.254.0.167:${PORT}`);
 });

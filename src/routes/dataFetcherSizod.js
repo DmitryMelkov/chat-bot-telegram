@@ -25,7 +25,7 @@ export async function fetchDataSizod() {
     // Отправляем данные на сервер
     for (const [key, value] of Object.entries(namedDotEkoData)) {
       try {
-        const response = await axios.post('http://169.254.7.86:3001/update-values', JSON.stringify({ [key]: value }), {
+        const response = await axios.post('http://169.254.6.19:3001/update-values', JSON.stringify({ [key]: value }), {
           headers: {
             'Content-Type': 'application/json',
           },
