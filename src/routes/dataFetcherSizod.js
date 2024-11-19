@@ -1,12 +1,13 @@
 import axios from 'axios';
+import { DotEKO } from '../models/SizodModel.js';
 
-// Функция для получения данных для DotEKO
 export async function fetchDataSizod() {
   try {
-    // Запрашиваем данные для СИЗОД (DotEKO)
-    const responseDotEko = await axios.get('http://169.254.7.86:3002/api/mongo-value');
+    // Запрашиваем данные для DotEKO
+    const responseDotEko = await axios.get('http://169.254.0.206:3002/api/dot-eko');
     const dotEkoData = responseDotEko.data;
 
+    // Формируем объект данных с именованными ключами
     const namedDotEkoData = {
       'Лыжа левая ДОТ-ЭКО': dotEkoData.leftSki,
       'Лыжа правая ДОТ-ЭКО': dotEkoData.rightSki,
@@ -22,22 +23,15 @@ export async function fetchDataSizod() {
       'Время работы рапорт ДОТ-ЭКО': dotEkoData.workTime,
     };
 
-    // Отправляем данные на сервер
-    for (const [key, value] of Object.entries(namedDotEkoData)) {
-      try {
-        const response = await axios.post('http://169.254.6.19:3001/update-values', JSON.stringify({ [key]: value }), {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (error) {
-        console.error(`Ошибка при отправке данных для ключа: ${key}`, error.response ? error.response.data : error.message);
-      }
-    }
+    // Создаём новый документ, в котором все данные записаны в одном поле `data`
+    await DotEKO.create({
+      data: namedDotEkoData,
+      timestamp: new Date(),
+    });
   } catch (error) {
-    console.error('Ошибка при получении данных для DotEKO:', error.message);
+    console.error('Ошибка при получении или сохранении данных для DotEKO:', error.message);
   }
 }
 
-// Устанавливаем интервал обновления для DotEko каждые 10 секунд
+// Устанавливаем интервал обновления для DotEKO каждые 10 секунд
 setInterval(fetchDataSizod, 10000);

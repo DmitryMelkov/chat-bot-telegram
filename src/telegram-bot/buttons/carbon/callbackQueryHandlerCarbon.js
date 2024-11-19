@@ -7,6 +7,8 @@ import { generateTableMpa } from '../../generates/pechiMPA/generatetable.js';
 import { handleChartGeneration } from './chartHandlers.js';
 import { chartGenerators } from './chartGenerators.js';
 import { getButtonsByAction } from './buttonSets.js';
+import { FurnaceVR1, FurnaceVR2 } from '../../../models/FurnanceModel.js';
+
 
 export const handleCallbackQueryCarbon = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -16,8 +18,19 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
     if (action.startsWith('get_params_vr')) {
       const furnaceNumber = action.includes('vr1') ? 1 : 2;
       const currentTime = new Date().toLocaleString();
-      const data = app.locals.data;
 
+      // Получаем данные из MongoDB
+      const furnaceDataModel = furnaceNumber === 1 ? FurnaceVR1 : FurnaceVR2;
+      const furnaceDocument = await furnaceDataModel.findOne().sort({ timestamp: -1 }); // Последняя запись
+
+      if (!furnaceDocument || !furnaceDocument.data) {
+        await bot.sendMessage(chatId, 'Данные для печи не найдены. Попробуйте позже.');
+        return;
+      }
+
+      const data = Object.fromEntries(furnaceDocument.data); // Преобразуем Map в обычный объект
+
+      // Генерируем таблицу
       const table = generateTablePechVr(data, furnaceNumber, currentTime);
       const buttonSet = [
         [{ text: 'Алармы', callback_data: `check_alarms_vr${furnaceNumber}` }],
@@ -32,30 +45,46 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
       });
     } else if (action.startsWith('check_alarms_')) {
       const furnaceNumber = action.includes('vr1') ? 1 : 2;
-      const data = app.locals.data;
+
+      // Получаем данные из MongoDB
+      const furnaceDataModel = furnaceNumber === 1 ? FurnaceVR1 : FurnaceVR2;
+      const furnaceDocument = await furnaceDataModel.findOne().sort({ timestamp: -1 }); // Последняя запись
+
+      if (!furnaceDocument || !furnaceDocument.data) {
+        await bot.sendMessage(chatId, 'Алармы для печи не найдены. Попробуйте позже.');
+        return;
+      }
+
+      const data = Object.fromEntries(furnaceDocument.data); // Преобразуем Map в обычный объект
+
+      // Передаем данные в функцию checkAndNotify
       await checkAndNotify(data, bot, chatId, furnaceNumber, query.message.message_id);
-    } else if (action.startsWith('archive_')) {
+    }
+     else if (action.startsWith('archive_')) {
       let chartType;
       let chartTitle;
       const furnaceNumber = action.includes('vr1') ? 1 : 2;
+
       if (action.startsWith('archive_temperature_')) {
         chartType = 'температуры';
         chartTitle = `График температуры печи карбонизации №${furnaceNumber} за сутки`;
       } else if (action.startsWith('archive_pressure_')) {
         chartType = 'давление/разрежение';
-        chartTitle = `График давления ${furnaceNumber === 1 ? '1' : '2'} за сутки`;
+        chartTitle = `График давления печи карбонизации №${furnaceNumber} за сутки`;
       } else if (action.startsWith('archive_level_')) {
         chartType = 'уровня';
-        chartTitle = `График уровня ${furnaceNumber === 1 ? '1' : '2'} за сутки`;
+        chartTitle = `График уровня печи карбонизации №${furnaceNumber} за сутки`;
       } else if (action.startsWith('archive_dose_')) {
         chartType = 'Доза (Кг/час)';
-        chartTitle = `График Доза ВР${furnaceNumber} за сутки`;
+        chartTitle = `График дозы печи карбонизации №${furnaceNumber} за сутки`;
       }
+
       app.locals.userStates = app.locals.userStates || {};
       const requestDateMessage = await bot.sendMessage(
         chatId,
         `Введите дату в формате dd.mm.yyyy для графика ${chartType}.`
       );
+
       app.locals.userStates[chatId] = {
         action: `${action}`,
         messageId: requestDateMessage.message_id,

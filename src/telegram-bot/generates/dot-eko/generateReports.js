@@ -1,23 +1,20 @@
 import { DotEKO } from '../../../models/SizodModel.js';
 import moment from 'moment';
 
-// Функция для генерации суточного отчета
+const getDifference = (values, threshold = 15000) => {
+  if (values.length === 0) return 0;
+  const max = Math.max(...values);
+  const min = Math.min(...values);
+  const diff = max - min;
+  return diff > threshold ? 0 : diff;
+};
+
 export const generateDailyReportDotEko = async (dateString = null) => {
   try {
     const startDate = dateString ? moment(dateString, 'DD.MM.YYYY').startOf('day') : moment().startOf('day');
     const endDate = dateString ? moment(dateString, 'DD.MM.YYYY').endOf('day') : moment();
 
     const reportData = await DotEKO.find({
-      key: { 
-        $in: [
-          'Лыжа левая рапорт ДОТ-ЭКО', 
-          'Лыжа правая рапорт ДОТ-ЭКО', 
-          'Брак рапорт ДОТ-ЭКО', 
-          'Сумма двух лыж рапорт ДОТ-ЭКО',
-          'Время работы рапорт ДОТ-ЭКО',
-          'Время записи на сервер ДОТ-ЭКО'
-        ]
-      },
       timestamp: { $gte: startDate.toDate(), $lte: endDate.toDate() },
     }).sort({ timestamp: 1 });
 
@@ -55,10 +52,10 @@ export const generateDailyReportDotEko = async (dateString = null) => {
       const interval = intervals.find(interval => entryTime.isSameOrAfter(interval.start) && entryTime.isBefore(interval.end));
       if (interval) {
         const data = hourlyData[interval.label];
-        if (entry.key === 'Лыжа правая рапорт ДОТ-ЭКО') data.rightSkiReport.push(Number(entry.value));
-        if (entry.key === 'Лыжа левая рапорт ДОТ-ЭКО') data.leftSkiReport.push(Number(entry.value));
-        if (entry.key === 'Брак рапорт ДОТ-ЭКО') data.defectReport.push(Number(entry.value));
-        if (entry.key === 'Время работы рапорт ДОТ-ЭКО') data.workTime.push(Number(entry.value));
+        data.rightSkiReport.push(Number(entry.data.get('Лыжа правая рапорт ДОТ-ЭКО') || 0));
+        data.leftSkiReport.push(Number(entry.data.get('Лыжа левая рапорт ДОТ-ЭКО') || 0));
+        data.defectReport.push(Number(entry.data.get('Брак рапорт ДОТ-ЭКО') || 0));
+        data.workTime.push(Number(entry.data.get('Время работы рапорт ДОТ-ЭКО') || 0));
       }
     });
 
@@ -68,17 +65,10 @@ export const generateDailyReportDotEko = async (dateString = null) => {
     let totalDailySkiDiff = 0;
 
     Object.entries(hourlyData).forEach(([hour, data]) => {
-      const getDifference = (values) => {
-        if (values.length === 0) return 0;
-        const max = Math.max(...values);
-        const min = Math.min(...values);
-        return max - min;
-      };
-
       const rightSkiDiff = getDifference(data.rightSkiReport);
       const leftSkiDiff = getDifference(data.leftSkiReport);
       const defectDiff = getDifference(data.defectReport);
-      let workTimeDiff = getDifference(data.workTime);
+      let workTimeDiff = getDifference(data.workTime, 24);
 
       if (workTimeDiff !== 0) {
         workTimeDiff = workTimeDiff.toFixed(2);
@@ -109,6 +99,7 @@ export const generateDailyReportDotEko = async (dateString = null) => {
   }
 };
 
+
 // Функция для генерации месячного отчета
 export const generateMonthlyReportDotEko = async (dateString = null) => {
   try {
@@ -116,17 +107,7 @@ export const generateMonthlyReportDotEko = async (dateString = null) => {
     const endDate = dateString ? moment(dateString, 'MM.YYYY').endOf('month') : moment().endOf('month');
 
     const reportData = await DotEKO.find({
-      key: { 
-        $in: [
-          'Лыжа левая рапорт ДОТ-ЭКО', 
-          'Лыжа правая рапорт ДОТ-ЭКО', 
-          'Брак рапорт ДОТ-ЭКО', 
-          'Сумма двух лыж рапорт ДОТ-ЭКО',
-          'Время работы рапорт ДОТ-ЭКО',
-          'Время записи на сервер ДОТ-ЭКО'
-        ]
-      },
-      timestamp: { $gte: startDate, $lte: endDate },
+      timestamp: { $gte: startDate.toDate(), $lte: endDate.toDate() },
     }).sort({ timestamp: 1 });
 
     if (reportData.length === 0) {
@@ -144,10 +125,10 @@ export const generateMonthlyReportDotEko = async (dateString = null) => {
           workTime: [],
         };
       }
-      if (entry.key === 'Лыжа правая рапорт ДОТ-ЭКО') dailyData[day].rightSkiReport.push(Number(entry.value));
-      if (entry.key === 'Лыжа левая рапорт ДОТ-ЭКО') dailyData[day].leftSkiReport.push(Number(entry.value));
-      if (entry.key === 'Брак рапорт ДОТ-ЭКО') dailyData[day].defectReport.push(Number(entry.value));
-      if (entry.key === 'Время работы рапорт ДОТ-ЭКО') dailyData[day].workTime.push(Number(entry.value));
+      dailyData[day].rightSkiReport.push(Number(entry.data.get('Лыжа правая рапорт ДОТ-ЭКО') || 0));
+      dailyData[day].leftSkiReport.push(Number(entry.data.get('Лыжа левая рапорт ДОТ-ЭКО') || 0));
+      dailyData[day].defectReport.push(Number(entry.data.get('Брак рапорт ДОТ-ЭКО') || 0));
+      dailyData[day].workTime.push(Number(entry.data.get('Время работы рапорт ДОТ-ЭКО') || 0));
     });
 
     let reportText = '*Месячный отчет ДОТ-ЭКО:*\n\n';
@@ -156,17 +137,10 @@ export const generateMonthlyReportDotEko = async (dateString = null) => {
     let totalMonthlySkiDiff = 0;
 
     Object.entries(dailyData).forEach(([day, data]) => {
-      const getDifference = (values) => {
-        if (values.length === 0) return 0;
-        const max = Math.max(...values);
-        const min = Math.min(...values);
-        return max - min;
-      };
-
       const rightSkiDiff = getDifference(data.rightSkiReport);
       const leftSkiDiff = getDifference(data.leftSkiReport);
       const defectDiff = getDifference(data.defectReport);
-      let workTimeDiff = getDifference(data.workTime);
+      let workTimeDiff = getDifference(data.workTime, 100);  // Порог для времени работы
 
       if (workTimeDiff !== 0) {
         workTimeDiff = workTimeDiff.toFixed(2);

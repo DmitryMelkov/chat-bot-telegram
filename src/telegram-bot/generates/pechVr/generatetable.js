@@ -15,7 +15,7 @@ export const generateTablePechVr = (data, furnaceNumber, currentTime) => {
 
     // Убедимся, что value является числом
     const transformedValue = typeof value === 'string' ? parseFloat(value.replace(',', '.')) : value;
-    
+
     // Проверка, является ли transformedValue числом
     if (isNaN(transformedValue)) {
       return '❌ ';

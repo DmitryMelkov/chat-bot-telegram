@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import iconv from 'iconv-lite'; // Подключаем библиотеку для преобразования кодировок
+import { FurnaceVR1, FurnaceVR2 } from '../models/FurnanceModel.js';
 
 export async function fetchData() {
   try {
@@ -122,7 +123,7 @@ export async function fetchData() {
     }
 
     const namedData = {
-      
+
       // Дозаторы Нотис ВР1
       'Нотис ВР1 Г/мин': data.doseVr1[0],
       'Нотис ВР1 Кг/час': data.doseVr1[1],
@@ -201,7 +202,7 @@ export async function fetchData() {
 
     for (const [key, value] of Object.entries(namedData)) {
       try {
-        await axios.post('http://169.254.6.19:3001/update-values', { [key]: value }, {
+        const response = await axios.post('http://169.254.0.167:3001/update-values', JSON.stringify({ [key]: value }), {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -227,13 +228,13 @@ export async function fetchDataVR() {
     const responseVr1 = await axios.get('http://169.254.0.156:3002/api/vr1-data');
     const responseVr2 = await axios.get('http://169.254.0.156:3002/api/vr2-data');
 
-       // Проверка, что данные для VR1 и VR2 были успешно получены
-       if (!responseVr1.data || !responseVr2.data) {
-        console.error("Ошибка: данные VR1 или VR2 не получены или пусты");
-        return;
-      }
+    // Проверяем, что данные получены
+    if (!responseVr1.data || !responseVr2.data) {
+      console.error('Ошибка: данные VR1 или VR2 не получены или пусты');
+      return;
+    }
 
-    // Обрабатываем JSON-данные для VR1 и VR2
+    // Обрабатываем JSON-данные для VR1
     const vr1Data = responseVr1.data;
     const vr2Data = responseVr2.data;
 
@@ -256,13 +257,13 @@ export async function fetchDataVR() {
       'Уровень в ванне скруббера печь ВР1': vr1Data.levels['В ванне скруббера'].value,
       'Уровень воды в емкости ХВО печь ВР1': vr1Data.levels['В емкости ХВО'].value,
       'Уровень воды в барабане котла печь ВР1': vr1Data.levels['В барабане котла'].value,
-      'Давление газов после скруббера печь ВР1': vr1Data.pressures['Газов после скруббера'],
+      'Давление газов после скруббера печь ВР1': vr1Data.pressures['Давление газов после скруббера'],
       'Давление пара в барабане котла печь ВР1': vr1Data.pressures['Пара в барабане котла'],
       'Разрежение в топке печи печь ВР1': vr1Data.vacuums['В топке печи'],
       'Разрежение в пространстве котла утилизатора печь ВР1': vr1Data.vacuums['В котле утилизаторе'],
       'Разрежение низ загрузочной камеры печь ВР1': vr1Data.vacuums['Низ загрузочной камеры'],
       'Исполнительный механизм котла печь ВР1': vr1Data.im['ИМ5 котел-утилизатор'],
-      'Мощность горелки печь ВР1': vr1Data.gorelka['Текущая мощность горелки'],
+      'Мощность горелки печь ВР1': vr1Data.gorelka['Мощность горелки №1'],
       'Время записи на сервер для печь ВР1': vr1Data.lastUpdated,
     };
 
@@ -284,37 +285,33 @@ export async function fetchDataVR() {
       'Уровень в ванне скруббера печь ВР2': vr2Data.levels['В ванне скруббера'].value,
       'Уровень воды в емкости ХВО печь ВР2': vr2Data.levels['В емкости ХВО'].value,
       'Уровень воды в барабане котла печь ВР2': vr2Data.levels['В барабане котла'].value,
-      'Давление газов после скруббера печь ВР2': vr2Data.pressures['Газов после скруббера'],
+      'Давление газов после скруббера печь ВР2': vr2Data.pressures['Давление газов после скруббера'],
       'Давление пара в барабане котла печь ВР2': vr2Data.pressures['Пара в барабане котла'],
       'Разрежение в топке печи печь ВР2': vr2Data.vacuums['В топке печи'],
       'Разрежение в пространстве котла утилизатора печь ВР2': vr2Data.vacuums['В котле утилизаторе'],
       'Разрежение низ загрузочной камеры печь ВР2': vr2Data.vacuums['Низ загрузочной камеры'],
       'Исполнительный механизм котла печь ВР2': vr2Data.im['ИМ5 котел-утилизатор'],
-      'Мощность горелки печь ВР2': vr2Data.gorelka['Текущая мощность горелки'],
+      'Мощность горелки печь ВР2': vr2Data.gorelka['Мощность горелки №2'],
       'Время записи на сервер для печь ВР2': vr2Data.lastUpdated,
     };
 
-    // Функция для отправки данных на сервер
-    const postData = async (data, systemName) => {
-      for (const [key, value] of Object.entries(data)) {
-        try {
-          // console.log(`Отправка данных ${systemName}: ${key} = ${value}`); // Вывод данных в консоль
-          await axios.post('http://169.254.6.19:3001/update-values', { [key]: value }, {
-            headers: { 'Content-Type': 'application/json' },
-          });
-        } catch (error) {
-          console.error(`Ошибка при отправке данных для ключа: ${key}`, error.response ? error.response.data : error.message);
-        }
-      }
-    };
+    // Сохраняем данные для VR1
+    await FurnaceVR1.create({
+      data: namedVr1Data,
+      timestamp: new Date(),
+    });
 
-    // Отправляем данные VR1 и VR2
-    await postData(namedVr1Data, 'Печь ВР1');
-    await postData(namedVr2Data, 'Печь ВР2');
+    // Сохраняем данные для VR2
+    await FurnaceVR2.create({
+      data: namedVr2Data,
+      timestamp: new Date(),
+    });
+
+    // console.log('Данные VR1 и VR2 успешно сохранены.');
   } catch (error) {
     console.error('Ошибка при получении данных для VR1 и VR2:', error.message);
   }
 }
 
 // Устанавливаем интервал обновления данных каждые 30 секунд
-setInterval(fetchDataVR, 30000);
+setInterval(fetchDataVR, 10000);

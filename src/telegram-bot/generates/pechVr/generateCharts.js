@@ -16,42 +16,64 @@ const generateChart = async (
   const timeRangeInMillis = timeRangeInHours * 60 * 60 * 1000;
   const timeAgo = new Date(currentTime.getTime() - timeRangeInMillis);
 
-  const datasetsPromises = keys.map((key) => {
-    return FurnaceModel.find({ key, timestamp: { $gte: timeAgo } }).sort({ timestamp: 1 });
-  });
+  // Извлекаем все документы за указанный временной диапазон
+  const furnaceDocuments = await FurnaceModel.find({ timestamp: { $gte: timeAgo } }).sort({ timestamp: 1 });
+  if (!furnaceDocuments || furnaceDocuments.length === 0) {
+    throw new Error(`Нет данных для графика "${chartTitle}" за выбранный период времени.`);
+  }
 
-  const datasets = await Promise.all(datasetsPromises);
+  // Создаем массивы для временных меток и значений
+  const timestamps = [];
+  const datasets = keys.map(() => []); // Создаем массив для каждого ключа
 
-  datasets.forEach((dataset, index) => {
-    if (dataset.length === 0) {
-      throw new Error(`Нет данных для ${keys[index]} за выбранный период времени для ${chartTitle}.`);
+  // Обрабатываем каждый документ
+for (const doc of furnaceDocuments) {
+  // Преобразуем Map в массив пар [ключ, значение]
+  const dataEntries = Array.from(doc.data.entries());
+
+  // Ограничиваем количество записей до 100 000
+  const limitedDataEntries = dataEntries.slice(0, 250000);
+
+  // Преобразуем обратно в объект для дальнейшей обработки
+  const dataMap = Object.fromEntries(limitedDataEntries);
+
+  const timestamp = new Date(doc.timestamp);
+
+  // Проверяем каждый ключ
+  keys.forEach((key, index) => {
+    if (dataMap[key]) {
+      const value =
+        typeof dataMap[key] === 'string'
+          ? parseFloat(dataMap[key].replace(',', '.'))
+          : dataMap[key];
+      datasets[index].push(value);
     }
   });
 
-  const timestamps = datasets[0].map((d) => new Date(d.timestamp).toLocaleString());
-  const values = datasets.map((dataset) =>
-    dataset.map((d) => {
-      // Проверяем, является ли d.value строкой
-      if (typeof d.value === 'string') {
-        // Если это строка, заменяем запятую на точку
-        return parseFloat(d.value.replace(',', '.'));
-      } else if (typeof d.value === 'number') {
-        // Если это уже число, просто возвращаем его
-        return d.value;
-      } else {
-        throw new Error(`Некорректный тип данных для значения: ${d.value}`);
-      }
-    })
-  );
+  timestamps.push(timestamp.toLocaleString()); // Добавляем временную метку
+}
 
-  const config = createChartConfig(timestamps, values, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
+
+  // Проверяем, есть ли данные для каждого ключа
+  datasets.forEach((dataset, index) => {
+    if (dataset.length === 0) {
+      console.warn(`Нет данных для "${keys[index]}" за выбранный период времени.`);
+    }
+  });
+
+  if (timestamps.length === 0 || datasets.every((dataset) => dataset.length === 0)) {
+    throw new Error(`Нет данных для графика "${chartTitle}" за выбранный период времени.`);
+  }
+
+  // Генерация конфигурации графика
+  const config = createChartConfig(timestamps, datasets, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
   return renderChartToBuffer(config);
 };
 
 // Температура: от 0 до 1500
 // Функция генерации графиков температуры
 const generateTemperatureChart = async (FurnaceModel, chartTitle, timeRangeInHours, suffix) => {
-  const Keys = [
+  const keys = [
     `Температура 1-СК печь ${suffix}`,
     `Температура 2-СК печь ${suffix}`,
     `Температура 3-СК печь ${suffix}`,
@@ -85,8 +107,9 @@ const generateTemperatureChart = async (FurnaceModel, chartTitle, timeRangeInHou
     'Температура гранул после холод-ка',
   ];
 
-  return generateChart(FurnaceModel, Keys, labels, 'Температура (°C)', chartTitle, 0, 1500, 50, timeRangeInHours);
+  return generateChart(FurnaceModel, keys, labels, 'Температура (°C)', chartTitle, 0, 1500, 50, timeRangeInHours);
 };
+
 
 // Функция генерации графиков давления/разрежения
 const generatePressureChart = async (FurnaceModel, chartTitle, timeRangeInHours, suffix) => {

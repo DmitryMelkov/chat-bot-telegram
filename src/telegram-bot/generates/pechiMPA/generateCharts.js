@@ -16,8 +16,13 @@ const generateChart = async (
   const timeRangeInMillis = timeRangeInHours * 60 * 60 * 1000;
   const timeAgo = new Date(currentTime.getTime() - timeRangeInMillis);
 
+  // Проверка индекса и оптимизация запросов
   const datasetsPromises = keys.map((key) => {
-    return FurnaceModel.find({ key, timestamp: { $gte: timeAgo } }).sort({ timestamp: 1 });
+    return FurnaceModel.aggregate([
+      { $match: { key, timestamp: { $gte: timeAgo } } },
+      { $sort: { timestamp: 1 } },
+      { $limit: 250000 } // Ограничение количества записей
+    ]);
   });
 
   const datasets = await Promise.all(datasetsPromises);

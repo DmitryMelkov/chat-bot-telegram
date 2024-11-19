@@ -23,16 +23,16 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
       });
     } else if (action === 'sizod_get_params_eko') {
       const currentTime = new Date().toLocaleString();
-      const data = app.locals.data;
+
+      // Получаем последний документ из базы данных, чтобы передать его в generateTableDotEko
+      const latestDocument = await DotEKO.findOne().sort({ timestamp: -1 });
 
       const buttonSet = [
         [{ text: 'Обновить', callback_data: 'sizod_get_params_eko' }],
         [{ text: 'Назад', callback_data: 'sizod_dot_eko' }],
       ];
 
-      const hasDotEkoData = dotEkoKeys.every(key => data.hasOwnProperty(key));
-
-      if (!hasDotEkoData) {
+      if (!latestDocument || !dotEkoKeys.every(key => latestDocument.data.has(key))) {
         await bot.editMessageText('Данные для ДОТ-ЭКО отсутствуют.', {
           chat_id: chatId,
           message_id: query.message.message_id,
@@ -41,7 +41,8 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
         return;
       }
 
-      const table = generateTableDotEko(data, currentTime);
+      // Генерируем таблицу, передавая весь документ
+      const table = generateTableDotEko(latestDocument, currentTime);
 
       await bot.editMessageText(table, {
         chat_id: chatId,
@@ -92,7 +93,8 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
-    } else if (action === 'sizod_charts_eko') {
+    }
+     else if (action === 'sizod_charts_eko') {
       const buttonSet = getButtonsByActionSizod('sizod_charts_eko');
       await bot.editMessageText('Выберите тип графика:', {
         chat_id: chatId,
@@ -106,7 +108,6 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
       const model = action.includes('eko') ? DotEKO : DotPro;
       const key = 'Сумма двух лыж рапорт ДОТ-ЭКО';
 
-      // Прелоудер
       const preloadMessage = await bot.sendMessage(chatId, 'Генерация графика, пожалуйста, подождите...');
 
       try {
@@ -125,7 +126,7 @@ export const handleCallbackQuerySizod = async (bot, app, query) => {
           await bot.sendMessage(chatId, 'Не удалось сгенерировать график. Попробуйте позже.');
         }
       } finally {
-        await bot.deleteMessage(chatId, preloadMessage.message_id); // Удаляем сообщение прелоудера
+        await bot.deleteMessage(chatId, preloadMessage.message_id);
       }
 
       const returnButtonSet = getButtonsByActionSizod('sizod_charts_eko');

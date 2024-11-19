@@ -24,7 +24,7 @@ export const getDateRangeAndLabelGenerator = (period) => {
 };
 
 export const generateLabels = (period, labelGenerator) => {
-  let labels = [];
+  const labels = [];
 
   if (period === 'daily') {
     for (let i = 0; i < 24; i++) {
@@ -51,12 +51,11 @@ const chartJSNodeCanvas = new ChartJSNodeCanvas({
   },
 });
 
-export const generateHistogram = async ({ model, key, period, title }) => {
+export const generateHistogram = async ({ model, key, period, title, threshold = 15000 }) => {
   try {
     const { startDate, endDate, groupFormat, labelGenerator } = getDateRangeAndLabelGenerator(period);
 
     const reportData = await model.find({
-      key: key,
       timestamp: { $gte: startDate, $lte: endDate },
     }).sort({ timestamp: 1 });
 
@@ -70,12 +69,15 @@ export const generateHistogram = async ({ model, key, period, title }) => {
       if (!groupedData[group]) {
         groupedData[group] = [];
       }
-      groupedData[group].push(Number(entry.value));
+      const value = entry.data.get(key) || 0;
+      groupedData[group].push(Number(value));
     });
 
+    // Рассчитываем разницу между максимальным и минимальным значением с фильтрацией выбросов
     Object.keys(groupedData).forEach(group => {
       const values = groupedData[group];
-      groupedData[group] = values.length > 0 ? Math.max(...values) - Math.min(...values) : 0;
+      const diff = Math.max(...values) - Math.min(...values);
+      groupedData[group] = diff > threshold ? 0 : diff;
     });
 
     const labels = generateLabels(period, labelGenerator);
