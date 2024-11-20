@@ -2,6 +2,7 @@ import { chartGenerators } from './chartGenerators.js';
 import { sendMessageWithButtons } from '../../sendMessage.js';
 import { getButtonsByAction } from './buttonSets.js';
 import { FurnaceVR1, FurnaceVR2 } from '../../../models/FurnanceModel.js'; // Только для VR
+import { Sushilka1, Sushilka2 } from '../../../models/SushilkaModel.js'; // Для сушилок
 
 export const handleChartGeneration = async (bot, chatId, action) => {
   const generateChart = chartGenerators[action];
@@ -15,39 +16,50 @@ export const handleChartGeneration = async (bot, chatId, action) => {
     loadingMessage = await bot.sendMessage(chatId, 'Загрузка графика, пожалуйста подождите...');
 
     // Определение модели и параметров
-    let FurnaceModel, furnaceNumber, furnaceType, data;
+    let model, equipmentNumber, equipmentType, data;
     if (action.includes('vr1') || action.includes('vr2')) {
       // Логика для VR
-      FurnaceModel = action.includes('vr1') ? FurnaceVR1 : FurnaceVR2;
-      furnaceNumber = action.includes('vr1') ? 1 : 2;
-      furnaceType = 'печи карбонизации';
+      model = action.includes('vr1') ? FurnaceVR1 : FurnaceVR2;
+      equipmentNumber = action.includes('vr1') ? 1 : 2;
+      equipmentType = 'печи карбонизации';
 
-      // Извлечение данных из последнего документа для VR
-      const furnaceDocument = await FurnaceModel.findOne().sort({ timestamp: -1 });
-      if (!furnaceDocument || !furnaceDocument.data) {
-        throw new Error(`Данные для ${furnaceType} №${furnaceNumber} отсутствуют.`);
+      const document = await model.findOne().sort({ timestamp: -1 });
+      if (!document || !document.data) {
+        throw new Error(`Данные для ${equipmentType} №${equipmentNumber} отсутствуют.`);
       }
 
-      data = Object.fromEntries(furnaceDocument.data); // Преобразование Map в объект
+      data = Object.fromEntries(document.data);
     } else if (action.includes('mpa2') || action.includes('mpa3')) {
       // Логика для MPA
-      furnaceNumber = action.includes('mpa2') ? 2 : 3;
-      furnaceType = 'МПА';
+      equipmentNumber = action.includes('mpa2') ? 2 : 3;
+      equipmentType = 'МПА';
 
-      // Для MPA данные обрабатываются через генератор напрямую
-      data = null; // MPA не используют предварительно извлекаемые данные
+      data = null; // MPA используют прямую генерацию графика без данных
+    } else if (action.includes('sushilka1') || action.includes('sushilka2')) {
+      // Логика для сушилок
+      equipmentNumber = action.includes('sushilka1') ? 1 : 2;
+      model = equipmentNumber === 1 ? Sushilka1 : Sushilka2;
+      equipmentType = 'Сушилки';
+
+      const document = await model.findOne().sort({ timestamp: -1 });
+      if (!document || !document.data) {
+        throw new Error(`Данные для Сушилки №${equipmentNumber} отсутствуют.`);
+      }
+
+      data = Object.fromEntries(document.data);
     } else {
-      throw new Error('Неверный тип печи.');
+      throw new Error('Неверный тип оборудования.');
     }
 
-    const chartType = action.includes('temperature')
-      ? 'температуры'
-      : action.includes('pressure')
-      ? 'давления/разрежения'
-      : action.includes('level')
-      ? 'уровня'
-      : action.includes('dose')
-      ? 'Дозы (Кг/час)'
+    const chartTypeMap = {
+      temperature: 'температуры',
+      pressure: 'давления/разрежения',
+      level: 'уровня',
+      dose: 'Дозы (Кг/час)',
+    };
+    
+    const chartType = Object.keys(chartTypeMap).find((key) => action.includes(key))
+      ? chartTypeMap[Object.keys(chartTypeMap).find((key) => action.includes(key))]
       : 'неизвестного параметра';
 
     // Генерация графика
@@ -58,14 +70,18 @@ export const handleChartGeneration = async (bot, chatId, action) => {
 
     // Отправка графика
     await bot.sendPhoto(chatId, chartBuffer, {
-      caption: `График ${chartType} для ${furnaceType} №${furnaceNumber}`,
+      caption: `График ${chartType} для ${equipmentType} №${equipmentNumber}`,
     });
 
     await bot.deleteMessage(chatId, loadingMessage.message_id);
 
     // Определение набора кнопок
     const buttonSet = getButtonsByAction(
-      furnaceType === 'печи карбонизации' ? `charts_vr${furnaceNumber}` : `charts_mpa${furnaceNumber}`
+      equipmentType === 'печи карбонизации'
+        ? `charts_vr${equipmentNumber}`
+        : equipmentType === 'МПА'
+        ? `charts_mpa${equipmentNumber}`
+        : `charts_sushilka${equipmentNumber}`
     );
     await sendMessageWithButtons(bot, chatId, 'Выберите следующий график или вернитесь назад:', buttonSet);
   } catch (error) {

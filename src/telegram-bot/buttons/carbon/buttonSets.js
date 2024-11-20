@@ -10,6 +10,10 @@ export const getButtonsByAction = (action) => {
         { text: 'МПА 3', callback_data: 'furnace_mpa3' },
       ],
       [
+        { text: 'Сушилка 1', callback_data: 'sushilka_1' },
+        { text: 'Сушилка 2', callback_data: 'sushilka_2' },
+      ],
+      [
         { text: 'Назад', callback_data: 'back_to_main' },
       ]
     ],
@@ -246,6 +250,94 @@ export const getButtonsByAction = (action) => {
         { text: 'Давление/разрежение', callback_data: 'archive_pressure_mpa3' },
       ],
       [{ text: 'Назад', callback_data: 'furnace_mpa3' }],
+    ],
+    sushilka_1: [
+      [
+        { text: 'Текущие параметры', callback_data: 'get_params_sushilka1' },
+        { text: 'Графики', callback_data: 'charts_sushilka1' },
+      ],
+      [
+        { text: 'Архивы графиков', callback_data: 'charts_archive_sushilka1' },
+        { text: 'Назад', callback_data: 'production_carbon' },
+      ],
+    ],
+    charts_sushilka1: [
+      [
+        { text: 'Температура', callback_data: 'chart_temperature_sushilka1' },
+        { text: 'Давление/разрежение', callback_data: 'chart_pressure_sushilka1' },
+      ],
+      [{ text: 'Назад', callback_data: 'sushilka_1' }],
+    ],
+    chart_temperature_sushilka1: [
+      [
+        { text: 'За 1 час', callback_data: 'chart_temperature_sushilka1_Hour' },
+        { text: 'За 12 часов', callback_data: 'chart_temperature_sushilka1_Twelve' },
+      ],
+      [
+        { text: 'За 24 часа', callback_data: 'chart_temperature_sushilka1_Day' },
+        { text: 'Назад', callback_data: 'charts_sushilka1' },
+      ],
+    ],
+    chart_pressure_sushilka1: [
+      [
+        { text: 'За 1 час', callback_data: 'chart_pressure_sushilka1_Hour' },
+        { text: 'За 12 часов', callback_data: 'chart_pressure_sushilka1_Twelve' },
+      ],
+      [
+        { text: 'За 24 часа', callback_data: 'chart_pressure_sushilka1_Day' },
+        { text: 'Назад', callback_data: 'charts_sushilka1' },
+      ],
+    ],
+    charts_archive_sushilka1: [
+      [
+        { text: 'Температура', callback_data: 'archive_temperature_sushilka1' },
+        { text: 'Давление/разрежение', callback_data: 'archive_pressure_sushilka1' },
+      ],
+      [{ text: 'Назад', callback_data: 'sushilka_1' }],
+    ],
+    sushilka_2: [
+      [
+        { text: 'Текущие параметры', callback_data: 'get_params_sushilka2' },
+        { text: 'Графики', callback_data: 'charts_sushilka2' },
+      ],
+      [
+        { text: 'Архивы графиков', callback_data: 'charts_archive_sushilka2' },
+        { text: 'Назад', callback_data: 'production_carbon' },
+      ],
+    ],
+    charts_sushilka2: [
+      [
+        { text: 'Температура', callback_data: 'chart_temperature_sushilka2' },
+        { text: 'Давление/разрежение', callback_data: 'chart_pressure_sushilka2' },
+      ],
+      [{ text: 'Назад', callback_data: 'sushilka_2' }],
+    ],
+    chart_temperature_sushilka2: [
+      [
+        { text: 'За 1 час', callback_data: 'chart_temperature_sushilka2_Hour' },
+        { text: 'За 12 часов', callback_data: 'chart_temperature_sushilka2_Twelve' },
+      ],
+      [
+        { text: 'За 24 часа', callback_data: 'chart_temperature_sushilka2_Day' },
+        { text: 'Назад', callback_data: 'charts_sushilka2' },
+      ],
+    ],
+    chart_pressure_sushilka2: [
+      [
+        { text: 'За 1 час', callback_data: 'chart_pressure_sushilka2_Hour' },
+        { text: 'За 12 часов', callback_data: 'chart_pressure_sushilka2_Twelve' },
+      ],
+      [
+        { text: 'За 24 часа', callback_data: 'chart_pressure_sushilka2_Day' },
+        { text: 'Назад', callback_data: 'charts_sushilka2' },
+      ],
+    ],
+    charts_archive_sushilka2: [
+      [
+        { text: 'Температура', callback_data: 'archive_temperature_sushilka2' },
+        { text: 'Давление/разрежение', callback_data: 'archive_pressure_sushilka2' },
+      ],
+      [{ text: 'Назад', callback_data: 'sushilka_2' }],
     ],
     back_to_production: [[{ text: 'Карбон', callback_data: 'production_carbon' },
                           { text: 'Сизод', callback_data: 'production_sizod' }

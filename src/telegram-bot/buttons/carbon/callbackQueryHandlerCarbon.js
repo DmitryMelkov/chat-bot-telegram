@@ -8,7 +8,8 @@ import { handleChartGeneration } from './chartHandlers.js';
 import { chartGenerators } from './chartGenerators.js';
 import { getButtonsByAction } from './buttonSets.js';
 import { FurnaceVR1, FurnaceVR2 } from '../../../models/FurnanceModel.js';
-
+import { generateTableSushilka } from '../../generates/sushilka/generatetable.js';
+import { Sushilka1, Sushilka2 } from '../../../models/SushilkaModel.js';
 
 export const handleCallbackQueryCarbon = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -59,8 +60,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
 
       // Передаем данные в функцию checkAndNotify
       await checkAndNotify(data, bot, chatId, furnaceNumber, query.message.message_id);
-    }
-     else if (action.startsWith('archive_')) {
+    } else if (action.startsWith('archive_')) {
       let chartType;
       let chartTitle;
       const furnaceNumber = action.includes('vr1') ? 1 : 2;
@@ -141,12 +141,48 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
-    } else {
+    } 
+    // === Добавленный код для работы с сушилками ===
+    else if (action.startsWith('get_params_sushilka')) {
+      const sushilkaNumber = action.includes('sushilka1') ? 1 : 2; // Определяем номер сушилки
+      const currentTime = new Date().toLocaleString();
+
+      // Получаем модель данных сушилки из базы данных
+      const sushilkaModel = sushilkaNumber === 1 ? Sushilka1 : Sushilka2;
+      const sushilkaDocument = await sushilkaModel.findOne().sort({ timestamp: -1 }); // Последняя запись
+
+      if (!sushilkaDocument || !sushilkaDocument.data) {
+        await bot.sendMessage(chatId, `Данные для Сушилки ${sushilkaNumber} не найдены. Попробуйте позже.`);
+        return;
+      }
+
+      const data = Object.fromEntries(sushilkaDocument.data); // Преобразуем данные из базы в объект
+
+      // Генерация таблицы
+      const table = generateTableSushilka(data, sushilkaNumber, currentTime);
+      const buttonSet = [
+        [
+          { text: 'Обновить', callback_data: action },
+          { text: 'Назад', callback_data: 'production_carbon' },
+        ],
+      ];
+
+      // Отправляем обновлённое сообщение
+      await bot.editMessageText(table, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: { inline_keyboard: buttonSet },
+      });
+    } 
+    // === Конец добавленного кода ===
+    else {
       const actionMap = {
         furnace_vr1: 'Печь карбонизации №1',
         furnace_vr2: 'Печь карбонизации №2',
         furnace_mpa2: 'Печь МПА2',
         furnace_mpa3: 'Печь МПА3',
+        sushilka_1: 'Сушилка №1',
+        sushilka_2: 'Сушилка №2',
         back_to_main: 'Выберите интересующую опцию:',
       };
 

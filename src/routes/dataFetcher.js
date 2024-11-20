@@ -2,6 +2,7 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import iconv from 'iconv-lite'; // Подключаем библиотеку для преобразования кодировок
 import { FurnaceVR1, FurnaceVR2 } from '../models/FurnanceModel.js';
+import { Sushilka1, Sushilka2 } from '../models/SushilkaModel.js';
 
 export async function fetchData() {
   try {
@@ -202,7 +203,7 @@ export async function fetchData() {
 
     for (const [key, value] of Object.entries(namedData)) {
       try {
-        const response = await axios.post('http://169.254.0.167:3001/update-values', JSON.stringify({ [key]: value }), {
+        const response = await axios.post('http://169.254.6.19:3001/update-values', JSON.stringify({ [key]: value }), {
           headers: {
             'Content-Type': 'application/json',
           },
@@ -313,5 +314,65 @@ export async function fetchDataVR() {
   }
 }
 
-// Устанавливаем интервал обновления данных каждые 30 секунд
+// Устанавливаем интервал обновления данных каждые 10 секунд
 setInterval(fetchDataVR, 10000);
+
+// Функция для получения и отправки данных Сушилок в формате с конкретными названиями
+export async function fetchDataSushka() {
+  try {
+    // Запрашиваем данные для Сушилок
+    const responseSushka1 = await axios.get('http://169.254.0.156:3002/api/sushilka1-data');
+    const responseSushka2 = await axios.get('http://169.254.0.156:3002/api/sushilka2-data');
+
+    // Проверяем, что данные получены
+    if (!responseSushka1.data || !responseSushka2.data) {
+      console.error('Ошибка: данные для одной из Сушилок не получены или пусты');
+      return;
+    }
+
+    // Обрабатываем JSON-данные для Сушилок
+    const sushka1Data = responseSushka1.data;
+    const sushka2Data = responseSushka2.data;
+
+    // Формируем объекты с конкретными названиями полей, как в старом примере
+    const namedSushka1Data = {
+      'Температура в топке Сушилка1': sushka1Data.temperatures['Температура в топке'],
+      'Температура в камере смешения Сушилка1': sushka1Data.temperatures['Температура в камере смешения'],
+      'Температура уходящих газов Сушилка1': sushka1Data.temperatures['Температура уходящих газов'],
+      'Разрежение в топке Сушилка1': sushka1Data.vacuums['Разрежение в топке'],
+      'Разрежение в камере выгрузки Сушилка1': sushka1Data.vacuums['Разрежение в камере выгрузки'],
+      'Разрежение воздуха на разбавление Сушилка1': sushka1Data.vacuums['Разрежение воздуха на разбавление'],
+      'Мощность горелки №1 Сушилка1': sushka1Data.gorelka['Мощность горелки №1'],
+      'Время записи на сервер для Сушилка1': sushka1Data.lastUpdated,
+    };
+
+    const namedSushka2Data = {
+      'Температура в топке Сушилка2': sushka2Data.temperatures['Температура в топке'],
+      'Температура в камере смешения Сушилка2': sushka2Data.temperatures['Температура в камере смешения'],
+      'Температура уходящих газов Сушилка2': sushka2Data.temperatures['Температура уходящих газов'],
+      'Разрежение в топке Сушилка2': sushka2Data.vacuums['Разрежение в топке'],
+      'Разрежение в камере выгрузки Сушилка2': sushka2Data.vacuums['Разрежение в камере выгрузки'],
+      'Разрежение воздуха на разбавление Сушилка2': sushka2Data.vacuums['Разрежение воздуха на разбавление'],
+      'Мощность горелки №2 Сушилка2': sushka2Data.gorelka['Мощность горелки №2'],
+      'Время записи на сервер для Сушилка2': sushka2Data.lastUpdated,
+    };
+
+    // Сохраняем данные для Сушилки1
+    await Sushilka1.create({
+      data: namedSushka1Data,
+      timestamp: new Date(),
+    });
+
+    // Сохраняем данные для Сушилки2
+    await Sushilka2.create({
+      data: namedSushka2Data,
+      timestamp: new Date(),
+    });
+
+    // console.log('Данные Сушилок успешно сохранены.');
+  } catch (error) {
+    console.error('Ошибка при получении данных для Сушилок:', error.message);
+  }
+}
+
+setInterval(fetchDataSushka, 10000);

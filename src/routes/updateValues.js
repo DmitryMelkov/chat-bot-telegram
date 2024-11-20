@@ -2,6 +2,7 @@ import { initialData } from '../data/initialData.js';
 import { FurnaceVR1, FurnaceVR2 } from '../models/FurnanceModel.js';
 import { FurnaceMPA2, FurnaceMPA3 } from '../models/FurnanceMPAModel.js';
 import { NotisVR1, NotisVR2 } from '../models/NotisModel.js';
+import { Sushilka1, Sushilka2 } from '../models/SushilkaModel.js';
 import { DotEKO } from '../models/SizodModel.js';
 import { generateDoseTableNotis } from '../telegram-bot/generates/notis/generateTable.js';
 
@@ -70,6 +71,10 @@ export const updateValuesRoute = (app) => {
       model = FurnaceVR1;
     } else if (key.includes('печь ВР2')) {
       model = FurnaceVR2;
+    } else if (key.includes('Сушилка1')) {
+      model = Sushilka1;
+    } else if (key.includes('Сушилка2')) {
+      model = Sushilka2;
     } else if (key.includes('Нотис ВР1')) {
       model = NotisVR1;
     } else if (key.includes('Нотис ВР2')) {
