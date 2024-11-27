@@ -41,7 +41,6 @@ import {
   generateLevel12HourChartVR1,
   generateLevel12HourChartVR2,
 } from '../../generates/pechVr/generateCharts.js';
-
 import {
   generateTemperature24HourChartSushilka1,
   generateTemperature24HourChartSushilka2,
@@ -57,6 +56,13 @@ import {
   generateVacuumOneHourChartSushilka2,
 } from '../../generates/sushilka/generateCharts.js';
 
+import {
+  generateVibrationChartMill1,
+  generateVibrationChartMill2,
+  generateVibrationChartYGM9517,
+  generateVibrationChartSBM3,
+  generateVibrationChartYCVOK130,
+} from '../../generates/mill/generateCharts.js';
 
 export const chartGenerators = {
   // Для ВР1
@@ -134,3 +140,10 @@ chartGenerators['chart_dose_vr2_Hour'] = (params) => generateDoseOneHourChartVR2
 
 chartGenerators['archive_dose_vr1'] = (params) => generateDoseChartArchiveVR1(params);
 chartGenerators['archive_dose_vr2'] = (params) => generateDoseChartArchiveVR2(params);
+
+chartGenerators['chart_vibration_mill1'] = (params) => generateVibrationChartMill1(params);
+chartGenerators['chart_vibration_mill2'] = (params) => generateVibrationChartMill2(params);
+
+chartGenerators['chart_vibration_ygm9517'] = (params) => generateVibrationChartYGM9517(params);
+chartGenerators['chart_vibration_sbm3'] = (params) => generateVibrationChartSBM3(params);
+chartGenerators['chart_vibration_ycvok130'] = (params) => generateVibrationChartYCVOK130(params);

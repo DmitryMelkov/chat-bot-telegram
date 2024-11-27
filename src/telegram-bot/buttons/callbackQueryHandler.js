@@ -14,7 +14,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
     return;
   }
 
-  // Если действие связано с Карбоном (печи ВР, Notis, MPA, сушилки)
+  // Если действие связано с Карбоном
   if (
     action.startsWith('get_params_vr') ||
     action.startsWith('check_alarms_') ||
@@ -22,7 +22,9 @@ export const handleCallbackQuery = async (bot, app, query) => {
     action.startsWith('get_params_mpa') ||
     action.startsWith('chart_') ||
     action.startsWith('archive_') ||
-    action.includes('sushilka') // Добавляем проверку для сушилок
+    action.includes('sushilka') ||
+    action.includes('mill') ||
+    action.includes('reactor')
   ) {
     await handleCallbackQueryCarbon(bot, app, query);
     return;
@@ -37,6 +39,8 @@ export const handleCallbackQuery = async (bot, app, query) => {
       furnace_mpa3: 'Печь МПА3',
       sushilka_1: 'Сушилка №1',
       sushilka_2: 'Сушилка №2',
+      mill_k296: 'Мельницы к.296 и к.10б',
+      reactor_k296: 'Смоляные реактора к.296',
       back_to_main: 'Выберите интересующую опцию:',
     };
 

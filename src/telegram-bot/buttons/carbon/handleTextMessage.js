@@ -16,6 +16,37 @@ import {
   generatePressureChartArchiveSushilka2,
 } from '../../generates/sushilka/generateArchives.js';
 
+import {
+  generateVibrationChartArchiveMill1,
+  generateVibrationChartArchiveMill2,
+  generateVibrationChartArchiveSBM3,
+  generateVibrationChartArchiveYGM9517,
+  generateVibrationChartArchiveYCVOK130,
+} from '../../generates/mill/generateArchives.js';
+
+// Определяем меню для архивов графиков для Мельниц
+const charts_archive_mill = [
+  [
+    { text: 'Вибрация Мельницы №1', callback_data: 'archive_vibration_mill1' },
+    { text: 'Вибрация Мельницы №2', callback_data: 'archive_vibration_mill2' },
+  ],
+  [
+    { text: 'Вибрация Мельниц к.10б', callback_data: 'charts_archive_mill10b' },
+    { text: 'Назад', callback_data: 'mill_k296' },
+  ],
+];
+
+const charts_archive_mill10b = [
+  [
+    { text: 'Вибрация ШБМ №3', callback_data: 'archive_vibration_sbm3' },
+    { text: 'Вибрация YGM-9517', callback_data: 'archive_vibration_ygm9517' },
+  ],
+  [
+    { text: 'Вибрация YCVOK-130', callback_data: 'archive_vibration_ycvok130' },
+    { text: 'Назад', callback_data: 'charts_archive_mill' },
+  ],
+];
+
 // Определяем меню для архивов графиков для Сушилок
 const charts_archive_sushilka1 = [
   [
@@ -155,9 +186,25 @@ export const handleTextMessage = async (bot, app, msg) => {
         generateChartForDate = furnaceNumber === 1
           ? () => generatePressureChartArchiveSushilka1(userMessage)
           : () => generatePressureChartArchiveSushilka2(userMessage);
+      } else if (state.action.startsWith('archive_vibration_mill1')) {
+        generateChartForDate = () => generateVibrationChartArchiveMill1(userMessage);
+        menu = charts_archive_mill;
+      } else if (state.action.startsWith('archive_vibration_mill2')) {
+        generateChartForDate = () => generateVibrationChartArchiveMill2(userMessage);
+        menu = charts_archive_mill;
+      } else if (state.action.startsWith('archive_vibration_sbm3')) {
+        generateChartForDate = () => generateVibrationChartArchiveSBM3(userMessage);
+        menu = charts_archive_mill10b;
+      } else if (state.action.startsWith('archive_vibration_ygm9517')) {
+        generateChartForDate = () => generateVibrationChartArchiveYGM9517(userMessage);
+        menu = charts_archive_mill10b;
+      } else if (state.action.startsWith('archive_vibration_ycvok130')) {
+        generateChartForDate = () => generateVibrationChartArchiveYCVOK130(userMessage);
+        menu = charts_archive_mill10b;
       } else {
         throw new Error('Unknown action type.');
       }
+      
 
       console.log('Generating chart with:', generateChartForDate);
 
@@ -182,7 +229,9 @@ export const handleTextMessage = async (bot, app, msg) => {
         description = `Сгенерирован график уровня воды за ${userMessage}.`;
       } else if (state.action.startsWith('archive_dose_vr')) {
         description = `Сгенерирован график дозы кг/ч за ${userMessage}.`;
-      } else {
+      }  else if (state.action.startsWith('archive_vibration')) {
+        description = `Сгенерирован график вибрации за ${userMessage}.`;
+      }  else {
         description = 'Генерация графика завершена.';
       }
 
@@ -211,12 +260,16 @@ export const handleTextMessage = async (bot, app, msg) => {
       await bot.sendMessage(chatId, `Ошибка: нет данных за этот период, либо вы ввели некорректную дату. Пожалуйста, попробуйте еще раз или нажмите "Назад" для выхода.`, {
         reply_markup: {
           inline_keyboard: [
-            [{ text: 'Назад', callback_data: furnaceType === 'vr' 
-              ? `furnace_vr${furnaceNumber}` 
-              : furnaceType === 'mpa' 
-              ? `furnace_mpa${furnaceNumber}`
-              : `sushilka_${furnaceNumber}` // Добавляем поддержку 'sushilka'
-            }]
+            [{ text: 'Назад', callback_data: furnaceType === 'vr'
+            ? `furnace_vr${furnaceNumber}`
+            : furnaceType === 'mpa'
+            ? `furnace_mpa${furnaceNumber}`
+            : furnaceType === 'sushilka'
+            ? `sushilka_${furnaceNumber}`
+            : furnaceType === 'mill'
+            ? 'charts_archive_mill'
+            :'default_back_action' 
+          }],
           ]
         }
       });

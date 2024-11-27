@@ -14,6 +14,10 @@ export const getButtonsByAction = (action) => {
         { text: 'Сушилка 2', callback_data: 'sushilka_2' },
       ],
       [
+        {text: 'Мельницы', callback_data: 'mill_k296'},
+        {text: 'Смоляные реактора', callback_data: 'reactor_k296'}
+      ],
+      [
         { text: 'Назад', callback_data: 'back_to_main' },
       ]
     ],
@@ -338,6 +342,66 @@ export const getButtonsByAction = (action) => {
         { text: 'Давление/разрежение', callback_data: 'archive_pressure_sushilka2' },
       ],
       [{ text: 'Назад', callback_data: 'sushilka_2' }],
+    ],
+    mill_k296: [
+      [
+        { text: 'Текущие параметры', callback_data: 'get_params_mill' },
+        { text: 'Графики', callback_data: 'charts_mill' },
+      ],
+      [
+        { text: 'Архивы графиков', callback_data: 'charts_archive_mill' },
+        { text: 'Назад', callback_data: 'production_carbon' },
+      ],
+    ],
+    charts_mill: [
+      [
+        { text: 'Вибрация Мельницы №1', callback_data: 'chart_vibration_mill1' },
+        { text: 'Вибрация Мельницы №2', callback_data: 'chart_vibration_mill2' },
+      ],
+      [
+        { text: 'Вибрация Мельниц к.10б', callback_data: 'charts_mill10b' },
+        { text: 'Назад', callback_data: 'mill_k296' },
+      ],
+    ],
+    charts_mill10b: [
+      [
+        { text: 'Вибрация ШБМ №3', callback_data: 'chart_vibration_sbm3' },
+        { text: 'Вибрация YGM-9517', callback_data: 'chart_vibration_ygm9517' },
+      ],
+      [
+        { text: 'Вибрация YCVOK-130', callback_data: 'chart_vibration_ycvok130' },
+        { text: 'Назад', callback_data: 'charts_mill' },
+      ],
+    ],    
+    charts_archive_mill: [
+      [
+        {text: 'Вибрация Мельницы №1', callback_data: 'archive_vibration_mill1'},
+        {text: 'Вибрация Мельницы №2', callback_data: 'archive_vibration_mill2'}
+      ],
+      [
+        {text: 'Вибрация Мельниц к.10б', callback_data: 'charts_archive_mill10b'},
+        { text: 'Назад', callback_data: 'mill_k296' },
+      ]
+    ],
+    charts_archive_mill10b: [
+      [
+        {text: 'Вибрация ШБМ №3', callback_data: 'archive_vibration_sbm3'},
+        {text: 'Вибрация YGM-9517', callback_data: 'archive_vibration_ygm9517'}
+      ],
+      [
+        {text: 'Вибрация YCVOK-130', callback_data: 'archive_vibration_ycvok130'},
+        { text: 'Назад', callback_data: 'charts_archive_mill' },
+      ]
+    ],
+    reactor_k296: [
+      [
+        { text: 'Текущие параметры', callback_data: 'get_params_reactor' },
+        { text: 'Графики', callback_data: 'charts_reactor' },
+      ],
+      [
+        { text: 'Архивы графиков', callback_data: 'charts_archive_reactor' },
+        { text: 'Назад', callback_data: 'production_carbon' },
+      ],
     ],
     back_to_production: [[{ text: 'Карбон', callback_data: 'production_carbon' },
                           { text: 'Сизод', callback_data: 'production_sizod' }

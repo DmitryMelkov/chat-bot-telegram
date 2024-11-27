@@ -1,8 +1,8 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import iconv from 'iconv-lite'; // Подключаем библиотеку для преобразования кодировок
-import { FurnaceVR1, FurnaceVR2 } from '../models/FurnanceModel.js';
-import { Sushilka1, Sushilka2 } from '../models/SushilkaModel.js';
+import { FurnaceVR1, FurnaceVR2 } from '../../models/FurnanceModel.js';
+import { Sushilka1, Sushilka2 } from '../../models/SushilkaModel.js';
 
 export async function fetchData() {
   try {
@@ -220,7 +220,7 @@ export async function fetchData() {
   }
 }
 
-setInterval(fetchData, 30000);
+setInterval(fetchData, 10000);
 
 // Функция для получения и отправки данных VR1 и VR2 в формате с конкретными названиями
 export async function fetchDataVR() {

@@ -4,7 +4,8 @@ import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import { config } from './config/config.js';
 import { updateValuesRoute } from './routes/updateValues.js';
-import { fetchData, fetchDataVR, fetchDataSushka } from './routes/dataFetcher.js';
+import { fetchData, fetchDataVR, fetchDataSushka } from './routes/carbon/dataFetcher.js';
+import { fetchDataMill, fetchDataReactorK296 } from './routes/carbon/dataFetcherK296.js';
 import { fetchDataSizod } from './routes/dataFetcherSizod.js';
 import createTelegramBot from './telegram-bot/telegramBot.js';
 import fs from 'fs';
@@ -75,6 +76,8 @@ fetchData();
 fetchDataVR();
 fetchDataSushka();
 fetchDataSizod();
+fetchDataMill();
+fetchDataReactorK296();
 
 // Обработка ошибок маршрутов и других middleware
 app.use((err, req, res, next) => {
