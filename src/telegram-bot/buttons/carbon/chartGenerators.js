@@ -64,6 +64,8 @@ import {
   generateVibrationChartYCVOK130,
 } from '../../generates/mill/generateCharts.js';
 
+import { generateLevelChartReactorK296, generateTemperatureChartReactorK296 } from '../../generates/reactor/generateCharts.js';
+
 export const chartGenerators = {
   // Для ВР1
   chart_temperature_vr1_Day: (params) => generateTemperature24HourChartVR1(params),
@@ -147,3 +149,6 @@ chartGenerators['chart_vibration_mill2'] = (params) => generateVibrationChartMil
 chartGenerators['chart_vibration_ygm9517'] = (params) => generateVibrationChartYGM9517(params);
 chartGenerators['chart_vibration_sbm3'] = (params) => generateVibrationChartSBM3(params);
 chartGenerators['chart_vibration_ycvok130'] = (params) => generateVibrationChartYCVOK130(params);
+
+chartGenerators['chart_temperature_reactor'] = (params) => generateTemperatureChartReactorK296(params);
+chartGenerators['chart_level_reactor'] = (params) => generateLevelChartReactorK296 (params);

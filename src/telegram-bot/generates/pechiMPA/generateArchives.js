@@ -12,57 +12,86 @@ const generateChartForDate = async (
   yAxisStep,
   userDate
 ) => {
+  // Разбиваем пользовательскую дату на компоненты (день, месяц, год)
   const [day, month, year] = userDate.split('.').map(Number);
   const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0);
   const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999);
 
-  const datasetsPromises = keys.map((key) => {
-    return FurnaceModel.find({ key, timestamp: { $gte: startOfDay, $lte: endOfDay } }).sort({ timestamp: 1 });
-  });
+  // Получаем все документы за выбранный день
+  const furnaceDocuments = await FurnaceModel.find({
+    timestamp: { $gte: startOfDay, $lte: endOfDay },
+  }).sort({ timestamp: 1 });
 
-  const datasets = await Promise.all(datasetsPromises);
+  if (!furnaceDocuments || furnaceDocuments.length === 0) {
+    throw new Error(`Нет данных для графика "${chartTitle}" за выбранный день (${userDate}).`);
+  }
 
+  // Создаем массивы для временных меток и данных
+  const timestamps = [];
+  const datasets = keys.map(() => []); // Создаем массив для каждого ключа
+  let totalDataPoints = 0; // Счетчик общего числа обработанных данных
+
+  // Проходим по всем документам
+  for (const doc of furnaceDocuments) {
+    if (totalDataPoints >= 250000) {
+      break; // Прекращаем обработку, если достигли лимита
+    }
+
+    const dataMap = Object.fromEntries(doc.data); // Преобразуем Map в объект
+    const timestamp = new Date(doc.timestamp).toLocaleString(); // Форматируем временную метку
+
+    // Добавляем временную метку, если она еще не добавлена
+    if (!timestamps.includes(timestamp)) {
+      timestamps.push(timestamp);
+    }
+
+    // Обрабатываем данные для каждого ключа
+    keys.forEach((key, index) => {
+      if (totalDataPoints >= 250000) {
+        return; // Останавливаем добавление данных, если достигнут лимит
+      }
+
+      if (dataMap[key]) {
+        const value = typeof dataMap[key] === 'string' ? parseFloat(dataMap[key].replace(',', '.')) : dataMap[key];
+        datasets[index].push(value);
+        totalDataPoints++; // Увеличиваем счетчик точек данных
+      } else {
+        datasets[index].push(null); // Если данных нет, добавляем null
+        totalDataPoints++; // Увеличиваем счетчик точек данных
+      }
+    });
+  }
+
+  // Проверяем, есть ли данные для каждого ключа
   datasets.forEach((dataset, index) => {
-    if (dataset.length === 0) {
-      throw new Error(`Нет данных для ${keys[index]} за выбранный период времени для ${chartTitle}.`);
+    if (dataset.every((value) => value === null)) {
+      console.warn(`Нет данных для "${keys[index]}" за выбранный день (${userDate}).`);
     }
   });
 
-  const timestamps = datasets[0].map((d) => new Date(d.timestamp).toLocaleString());
-  const values = datasets.map((dataset) =>
-    dataset.map((d) => {
-      if (typeof d.value === 'string') {
-        return parseFloat(d.value.replace(',', '.'));
-      } else if (typeof d.value === 'number') {
-        return d.value;
-      } else {
-        throw new Error(`Некорректный тип данных для значения: ${d.value}`);
-      }
-    })
-  );
-
-  const config = createChartConfig(timestamps, values, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
+  // Генерация конфигурации графика
+  const config = createChartConfig(timestamps, datasets, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
   return renderChartToBuffer(config);
 };
 
 const generateTemperatureChartArchive = async (FurnaceModel, chartTitle, userDate, suffix) => {
   const Keys = [
-    `Температура Верх регенератора левый ${suffix}`,
-    `Температура Верх регенератора правый ${suffix}`,
-    `Температура Верх ближний левый ${suffix}`,
-    `Температура Верх ближний правый ${suffix}`,
-    `Температура Верх дальний левый ${suffix}`,
-    `Температура Верх дальний правый ${suffix}`,
-    `Температура Середина ближняя левая ${suffix}`,
-    `Температура Середина ближняя правая ${suffix}`,
-    `Температура Середина дальняя левая ${suffix}`,
-    `Температура Середина дальняя правая ${suffix}`,
-    `Температура Низ ближний левый ${suffix}`,
-    `Температура Низ ближний правый ${suffix}`,
-    `Температура Низ дальний левый ${suffix}`,
-    `Температура Низ дальний правый ${suffix}`,
-    `Температура Камера смешения ${suffix}`,
-    `Температура Дымовой боров ${suffix}`,
+    `Температура верх регенератора левый ${suffix}`,
+    `Температура верх регенератора правый ${suffix}`,
+    `Температура верх ближний левый ${suffix}`,
+    `Температура верх ближний правый ${suffix}`,
+    `Температура верх дальний левый ${suffix}`,
+    `Температура верх дальний правый ${suffix}`,
+    `Температура середина ближняя левый ${suffix}`,
+    `Температура середина ближняя правый ${suffix}`,
+    `Температура середина дальняя левый ${suffix}`,
+    `Температура середина дальняя правый ${suffix}`,
+    `Температура низ ближний левый ${suffix}`,
+    `Температура низ ближний правый ${suffix}`,
+    `Температура низ дальний левый ${suffix}`,
+    `Температура низ дальний правый ${suffix}`,
+    `Температура камера сгорания ${suffix}`,
+    `Температура дымовой боров ${suffix}`,
   ];
 
   const labels = [
@@ -80,7 +109,7 @@ const generateTemperatureChartArchive = async (FurnaceModel, chartTitle, userDat
     'Низ ближний правый',
     'Низ дальний левый',
     'Низ дальний правый',
-    'Камера смешения',
+    'Камера сгорания',
     'Дымовой боров',
   ];
 
@@ -92,17 +121,17 @@ const generateTemperatureChartArchive = async (FurnaceModel, chartTitle, userDat
 
 const generatePressureChartArchive = async (FurnaceModel, chartTitle, userDate, suffix) => {
   const Keys = [
-    `Давление Дымовой боров ${suffix}`,
-    `Давление Воздух левый ${suffix}`,
-    `Давление Воздух правый ${suffix}`,
-    `Давление Низ ближний левый ${suffix}`,
-    `Давление Низ ближний правый ${suffix}`,
-    `Давление Середина ближняя левая ${suffix}`,
-    `Давление Середина ближняя правая ${suffix}`,
-    `Давление Середина дальняя левая ${suffix}`,
-    `Давление Середина дальняя правая ${suffix}`,
-    `Давление Верх дальний левый ${suffix}`,
-    `Давление Верх дальний правый ${suffix}`,
+    `Разрежение дымовой боров ${suffix}`,
+    `Давление воздух левый ${suffix}`,
+    `Давление воздух правый ${suffix}`,
+    `Давление низ ближний левый ${suffix}`,
+    `Давление низ ближний правый ${suffix}`,
+    `Давление середина ближняя левый ${suffix}`,
+    `Давление середина ближняя правый ${suffix}`,
+    `Давление середина дальняя левый ${suffix}`,
+    `Давление середина дальняя правый ${suffix}`,
+    `Давление верх дальний левый ${suffix}`,
+    `Давление верх дальний правый ${suffix}`,
   ];
 
   const labels = [

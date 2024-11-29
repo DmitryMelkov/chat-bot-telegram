@@ -53,4 +53,4 @@ export const generateTableMill = (dataAllMills, currentTime) => {
 
   // Возвращаем итоговую строку
   return parameters.join('\n');
-};
+}; 

@@ -2,8 +2,10 @@ import { chartGenerators } from './chartGenerators.js';
 import { sendMessageWithButtons } from '../../sendMessage.js';
 import { getButtonsByAction } from './buttonSets.js';
 import { FurnaceVR1, FurnaceVR2 } from '../../../models/FurnanceModel.js'; // Только для VR
+import { FurnaceMPA2, FurnaceMPA3 } from '../../../models/FurnanceMPAModel.js';
 import { Sushilka1, Sushilka2 } from '../../../models/SushilkaModel.js'; // Для сушилок
 import { Mill1, Mill2, Mill10b } from '../../../models/MillModel.js'; // Модели мельниц
+import { ReactorK296 } from '../../../models/ReactorModel.js';
 
 export const handleChartGeneration = async (bot, chatId, action) => {
   const generateChart = chartGenerators[action];
@@ -31,22 +33,31 @@ export const handleChartGeneration = async (bot, chatId, action) => {
 
       data = Object.fromEntries(document.data);
     } else if (action.includes('mpa2') || action.includes('mpa3')) {
-      // Логика для МПА
       equipmentNumber = action.includes('mpa2') ? 2 : 3;
+      model = equipmentNumber === 2 ? FurnaceMPA2 : FurnaceMPA3;
       equipmentType = 'МПА';
+      const document = await model.findOne().sort({ timestamp: -1 });
+      if (!document || !document.data) {
+        throw new Error(`Данные для МПА${equipmentNumber} отсутствуют.`);
+      }
 
-      data = null; // МПА используют прямую генерацию графика без данных
     } else if (action.includes('sushilka1') || action.includes('sushilka2')) {
-      // Логика для сушилок
       equipmentNumber = action.includes('sushilka1') ? 1 : 2;
       model = equipmentNumber === 1 ? Sushilka1 : Sushilka2;
       equipmentType = 'Сушилки';
-
       const document = await model.findOne().sort({ timestamp: -1 });
       if (!document || !document.data) {
         throw new Error(`Данные для Сушилки №${equipmentNumber} отсутствуют.`);
       }
 
+      data = Object.fromEntries(document.data);
+    } else if (action.includes('reactor')) {
+      equipmentType = 'Смоляных реакторов';
+
+      const document = await ReactorK296.findOne().sort({ timestamp: -1 });
+      if (!document || !document.data) {
+        throw new Error(`Данные для Смоляных реакторов отсутствуют.`);
+      }
       data = Object.fromEntries(document.data);
     } else if (
       action.includes('mill1') ||
@@ -164,6 +175,8 @@ export const handleChartGeneration = async (bot, chatId, action) => {
         ? `charts_mpa${equipmentNumber}`
         : equipmentType === 'Сушилки'
         ? `charts_sushilka${equipmentNumber}`
+        : equipmentType === 'Смоляных реакторов'
+        ? `charts_reactor`
         : 'charts_mill'
     );
     await sendMessageWithButtons(bot, chatId, 'Выберите следующий график или вернитесь назад:', buttonSet);

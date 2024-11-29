@@ -92,14 +92,8 @@ export async function fetchDataReactorK296() {
 
     // Формируем объекты с конкретными названиями полей, как в старом примере
     const namedReactorK296Data = {
-      'Температура реактора 45/1': reactorK296Data.temperatures['Температура реактора 45/1'],
-      'Температура реактора 45/2': reactorK296Data.temperatures['Температура реактора 45/2'],
-      'Температура реактора 45/3': reactorK296Data.temperatures['Температура реактора 45/3'],
-      'Температура реактора 45/4': reactorK296Data.temperatures['Температура реактора 45/4'],
-      'Уровень реактора 45/1': reactorK296Data.levels['Уровень реактора 45/1'],
-      'Уровень реактора 45/2': reactorK296Data.levels['Уровень реактора 45/2'],
-      'Уровень реактора 45/3': reactorK296Data.levels['Уровень реактора 45/3'],
-      'Уровень реактора 45/4': reactorK296Data.levels['Уровень реактора 45/4'],
+      ...reactorK296Data.temperatures,
+      ...reactorK296Data.levels,
       'Время записи на сервер для Смоляных реакторов': reactorK296Data.lastUpdated,
     };
 

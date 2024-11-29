@@ -403,6 +403,24 @@ export const getButtonsByAction = (action) => {
         { text: 'Назад', callback_data: 'production_carbon' },
       ],
     ],
+    charts_reactor: [
+      [
+        {text: 'Температура', callback_data: 'chart_temperature_reactor'},
+        {text: 'Уровень', callback_data: 'chart_level_reactor'}
+      ],
+      [
+        {text: 'Назад', callback_data: 'reactor_k296'},
+      ]
+    ],
+    charts_archive_reactor: [
+      [
+        {text: 'Температура', callback_data: 'archive_temperature_reactor'},
+        {text: 'Уровень', callback_data: 'archive_level_reactor'}
+      ],
+      [
+        {text: 'Назад', callback_data: 'reactor_k296'},
+      ]
+    ],
     back_to_production: [[{ text: 'Карбон', callback_data: 'production_carbon' },
                           { text: 'Сизод', callback_data: 'production_sizod' }
                         ]],

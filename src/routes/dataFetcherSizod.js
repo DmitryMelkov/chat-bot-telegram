@@ -4,7 +4,7 @@ import { DotEKO } from '../models/SizodModel.js';
 export async function fetchDataSizod() {
   try {
     // Запрашиваем данные для DotEKO
-    const responseDotEko = await axios.get('http://169.254.0.206:3002/api/dot-eko');
+    const responseDotEko = await axios.get('http://169.254.0.165:3002/api/dot-eko');
     const dotEkoData = responseDotEko.data;
 
     // Формируем объект данных с именованными ключами

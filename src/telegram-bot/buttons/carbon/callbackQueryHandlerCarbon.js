@@ -4,6 +4,7 @@ import { generateDoseTableNotis } from '../../generates/notis/generateTable.js';
 import { NotisVR1, NotisVR2 } from '../../../models/NotisModel.js';
 import { checkLoading, getLastValuesNotis } from '../../../routes/updateValues.js';
 import { generateTableMpa } from '../../generates/pechiMPA/generatetable.js';
+import { FurnaceMPA2, FurnaceMPA3 } from '../../../models/FurnanceMPAModel.js';
 import { handleChartGeneration } from './chartHandlers.js';
 import { chartGenerators } from './chartGenerators.js';
 import { getButtonsByAction } from './buttonSets.js';
@@ -12,6 +13,8 @@ import { generateTableSushilka } from '../../generates/sushilka/generatetable.js
 import { Sushilka1, Sushilka2 } from '../../../models/SushilkaModel.js';
 import { generateTableMill } from '../../generates/mill/generatetable.js';
 import { Mill1, Mill2, Mill10b } from '../../../models/MillModel.js';
+import { ReactorK296 } from '../../../models/ReactorModel.js';
+import { generateTableReactor } from '../../generates/reactor/generatetable.js';
 
 export const handleCallbackQueryCarbon = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -128,7 +131,17 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
     } else if (action.startsWith('get_params_mpa2') || action.startsWith('get_params_mpa3')) {
       const mpaNumber = action.includes('mpa2') ? 2 : 3;
       const currentTime = new Date().toLocaleString();
-      const data = app.locals.data;
+      
+      // Получаем модель данных МПА из базы данных
+      const mpaModel = mpaNumber === 2 ? FurnaceMPA2 : FurnaceMPA3;
+      const mpaDocument = await mpaModel.findOne().sort({ timestamp: -1 }); // Последняя запись
+
+      if (!mpaDocument || !mpaDocument.data) {
+        await bot.sendMessage(chatId, `Данные для МПА ${mpaNumber} не найдены. Попробуйте позже.`);
+        return;
+      }
+
+      const data = Object.fromEntries(mpaDocument.data); // Преобразуем данные из базы в объект
 
       // Генерация таблицы для печей МПА2 и МПА3
       const table = generateTableMpa(data, mpaNumber, currentTime);
@@ -177,6 +190,34 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
+    } else if (action.startsWith('get_params_reactor')) {
+      const currentTime = new Date().toLocaleString();
+
+      // Получаем модель данных сушилки из базы данных
+      
+      const reactorDocument = await ReactorK296.findOne().sort({ timestamp: -1 }); // Последняя запись
+
+      if (!reactorDocument || !reactorDocument.data) {
+        await bot.sendMessage(chatId, `Данные для Смоляных реакторов не найдены. Попробуйте позже.`);
+        return;
+      }
+
+      const data = Object.fromEntries(reactorDocument.data); // Преобразуем данные из базы в объект
+
+      // Генерация таблицы
+      const table = generateTableReactor(data, currentTime);
+      const buttonSet = [
+        [
+          { text: 'Обновить', callback_data: action },
+          { text: 'Назад', callback_data: `reactor_k296` },
+        ],
+      ];
+      // Отправляем обновлённое сообщение
+      await bot.editMessageText(table, {
+        chat_id: chatId,
+        message_id: query.message.message_id,
+        reply_markup: { inline_keyboard: buttonSet },
+      });
     } 
     else if (action.startsWith('get_params_mill')) {
       const currentTime = new Date().toLocaleString();
@@ -187,29 +228,20 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         Mill2.find().sort({ timestamp: -1 }),
         Mill10b.find().sort({ timestamp: -1 }),
       ]);
-    
-      // Проверяем, есть ли данные
-      if (
-        (!mill1Documents || mill1Documents.length === 0) &&
-        (!mill2Documents || mill2Documents.length === 0) &&
-        (!mill10bDocuments || mill10bDocuments.length === 0)
-      ) {
-        await bot.sendMessage(chatId, `Данные для мельниц не найдены. Попробуйте позже.`);
-        return;
-      }
-    
-      // Объединяем данные в общий объект dataAllMills
+      
       const dataAllMills = {};
-    
+      
       // Обработка Mill1
-      mill1Documents.forEach((doc) => {
-        dataAllMills['Мельница №1 (к.296)'] = Object.fromEntries(doc.data);
-      });
-    
+      const lastMill1 = mill1Documents[0];
+      if (lastMill1) {
+        dataAllMills['Мельница №1 (к.296)'] = Object.fromEntries(lastMill1.data);
+      }
+      
       // Обработка Mill2
-      mill2Documents.forEach((doc) => {
-        dataAllMills['Мельница №2 (к.296)'] = Object.fromEntries(doc.data);
-      });
+      const lastMill2 = mill2Documents[0];
+      if (lastMill2) {
+        dataAllMills['Мельница №2 (к.296)'] = Object.fromEntries(lastMill2.data);
+      }
     
       // Обработка Mill10b (все параметры в одном документе)
       const mill10bConfig = {
@@ -228,19 +260,24 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
           'Поперечная вибрация YCVOK-130',
           'Осевая вибрация YCVOK-130',
         ],
-      };
-    
-      // Обрабатываем первый (или последний) документ из Mill10b
-      const mill10bData = Object.fromEntries(mill10bDocuments[0]?.data || []); // Преобразуем Map в объект
-
-      Object.keys(mill10bConfig).forEach((millName) => {
-        const parameters = mill10bConfig[millName];
-        dataAllMills[millName] = {};
-        parameters.forEach((param) => {
-          // Извлекаем значение или указываем "Нет данных" по умолчанию
-          dataAllMills[millName][param] = mill10bData[param] !== undefined ? mill10bData[param] : 'Нет данных';
-        });
-      });
+        
+      }; 
+      
+      // Обработка Mill10b
+      const lastMill10b = mill10bDocuments[0];
+        if (lastMill10b) {
+          const mill10bData = Object.fromEntries(lastMill10b.data);
+        
+          Object.keys(mill10bConfig).forEach((millName) => {
+            const parameters = mill10bConfig[millName];
+            dataAllMills[millName] = {};
+            parameters.forEach((param) => {
+              dataAllMills[millName][param] =
+                mill10bData[param] !== undefined ? mill10bData[param] : 'Нет данных';
+            });
+          });
+      }
+ 
       
     
       // Генерация таблицы

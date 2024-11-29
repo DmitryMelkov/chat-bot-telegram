@@ -24,6 +24,11 @@ import {
   generateVibrationChartArchiveYCVOK130,
 } from '../../generates/mill/generateArchives.js';
 
+import { 
+  generateLevelArchiveChartReactorK296, 
+  generateTemperatureArchiveChartReactorK296 
+} from '../../generates/reactor/generateArchives.js';
+
 // Определяем меню для архивов графиков для Мельниц
 const charts_archive_mill = [
   [
@@ -120,6 +125,16 @@ const charts_archive_mpa3 = [
   ],
 ];
 
+const charts_archive_reactor = [
+  [
+    {text: 'Температура', callback_data: 'archive_temperature_reactor'},
+    {text: 'Уровень', callback_data: 'archive_level_reactor'},
+  ],
+  [
+    {text: 'Назад', callback_data: 'reactor_k296'},
+  ]
+];
+
 export const handleTextMessage = async (bot, app, msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text; // Дата или число, введенное пользователем
@@ -201,6 +216,12 @@ export const handleTextMessage = async (bot, app, msg) => {
       } else if (state.action.startsWith('archive_vibration_ycvok130')) {
         generateChartForDate = () => generateVibrationChartArchiveYCVOK130(userMessage);
         menu = charts_archive_mill10b;
+      } else if (state.action.startsWith('archive_temperature_reactor')) {
+        generateChartForDate = () => generateTemperatureArchiveChartReactorK296(userMessage);
+        menu = charts_archive_reactor;
+      } else if (state.action.startsWith('archive_level_reactor')) {
+        generateChartForDate = () => generateLevelArchiveChartReactorK296(userMessage);
+        menu = charts_archive_reactor;
       } else {
         throw new Error('Unknown action type.');
       }
@@ -221,7 +242,7 @@ export const handleTextMessage = async (bot, app, msg) => {
 
       // Определяем описание сообщения с включением введенной пользователем даты
       let description;
-      if (state.action.startsWith('archive_temperature_vr') || state.action.startsWith('archive_temperature_mpa') || state.action.startsWith('archive_temperature_sushilka')) {
+      if (state.action.startsWith('archive_temperature')) {
         description = `Сгенерирован график температур за ${userMessage}.`;
       } else if (state.action.startsWith('archive_pressure_vr') || state.action.startsWith('archive_pressure_mpa') || state.action.startsWith('archive_pressure_sushilka')) {
         description = `Сгенерирован график давления за ${userMessage}.`;
@@ -231,6 +252,8 @@ export const handleTextMessage = async (bot, app, msg) => {
         description = `Сгенерирован график дозы кг/ч за ${userMessage}.`;
       }  else if (state.action.startsWith('archive_vibration')) {
         description = `Сгенерирован график вибрации за ${userMessage}.`;
+      } else if (state.action.startsWith ('archive_level_reactor')) {
+        description = `Сгенерирован график уровня смолы за ${userMessage}`
       }  else {
         description = 'Генерация графика завершена.';
       }
@@ -268,6 +291,8 @@ export const handleTextMessage = async (bot, app, msg) => {
             ? `sushilka_${furnaceNumber}`
             : furnaceType === 'mill'
             ? 'charts_archive_mill'
+            : furnaceType === 'reactor'
+            ? 'charts_archive_reactor'
             :'default_back_action' 
           }],
           ]

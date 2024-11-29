@@ -11,19 +11,12 @@ export async function fetchData() {
       { responseType: 'arraybuffer' } // Указываем тип ответа
     );
 
-    // Добавляем страницу для МПА
-    const responseMpa = await axios.get(
-      'http://techsite4/kaskad/Web_Clnt.dll/ShowPage?production/carbon/pechiMPA/MPATelegram.htm',
-      { responseType: 'arraybuffer' } // Указываем тип ответа
-    );
-
     // Преобразуем данные в нужную кодировку (Windows-1251)
     const decodedDataNotis = iconv.decode(Buffer.from(responseNotis.data), 'windows-1251');
-    const decodedDataMpa = iconv.decode(Buffer.from(responseMpa.data), 'windows-1251');
 
     // Парсинг данных с помощью cheerio
     const $Notis = cheerio.load(decodedDataNotis);
-    const $Mpa = cheerio.load(decodedDataMpa);
+
 
     const extractData = (selectors, $) => selectors.map((selector) => $(selector).text().trim());
 
@@ -47,80 +40,10 @@ export async function fetchData() {
       timeNotis: ['.bot-vr-notis-time'],
     };
 
-    const categoriesPechiMpa = {
-      temperatureMpa2: [
-        '.bot-temper-verh-regenerator-left-mpa2',
-        '.bot-temper-verh-regenerator-right-mpa2',
-        '.bot-temper-verh-bliznii-left-mpa2',
-        '.bot-temper-verh-bliznii-right-mpa2',
-        '.bot-temper-verh-dalnii-left-mpa2',
-        '.bot-temper-verh-dalnii-right-mpa2',
-        '.bot-temper-seredina-bliznii-left-mpa2',
-        '.bot-temper-seredina-bliznii-right-mpa2',
-        '.bot-temper-seredina-dalnii-left-mpa2',
-        '.bot-temper-seredina-dalnii-right-mpa2',
-        '.bot-temper-niz-bliznii-left-mpa2',
-        '.bot-temper-niz-bliznii-right-mpa2',
-        '.bot-temper-niz-dalnii-left-mpa2',
-        '.bot-temper-niz-dalnii-right-mpa2',
-        '.bot-temper-kamera-smeshenia-mpa2',
-        '.bot-temper-dymovoi-borov-mpa2',
-      ],
-      pressureMpa2: [
-        '.bot-davl-dymovoi-borov-mpa2',
-        '.bot-davl-vozduh-left-mpa2',
-        '.bot-davl-vozduh-right-mpa2',
-        '.bot-davl-niz-bliznii-left-mpa2',
-        '.bot-davl-niz-bliznii-right-mpa2',
-        '.bot-davl-seredina-bliznii-left-mpa2',
-        '.bot-davl-seredina-bliznii-right-mpa2',
-        '.bot-davl-seredina-dalnii-left-mpa2',
-        '.bot-davl-seredina-dalnii-right-mpa2',
-        '.bot-davl-verh-dalnii-left-mpa2',
-        '.bot-davl-verh-dalnii-right-mpa2',
-      ],
-      temperatureMpa3: [
-        '.bot-temper-verh-regenerator-left-mpa3',
-        '.bot-temper-verh-regenerator-right-mpa3',
-        '.bot-temper-verh-bliznii-left-mpa3',
-        '.bot-temper-verh-bliznii-right-mpa3',
-        '.bot-temper-verh-dalnii-left-mpa3',
-        '.bot-temper-verh-dalnii-right-mpa3',
-        '.bot-temper-seredina-bliznii-left-mpa3',
-        '.bot-temper-seredina-bliznii-right-mpa3',
-        '.bot-temper-seredina-dalnii-left-mpa3',
-        '.bot-temper-seredina-dalnii-right-mpa3',
-        '.bot-temper-niz-bliznii-left-mpa3',
-        '.bot-temper-niz-bliznii-right-mpa3',
-        '.bot-temper-niz-dalnii-left-mpa3',
-        '.bot-temper-niz-dalnii-right-mpa3',
-        '.bot-temper-kamera-smeshenia-mpa3',
-        '.bot-temper-dymovoi-borov-mpa3',
-      ],
-      pressureMpa3: [
-        '.bot-davl-dymovoi-borov-mpa3',
-        '.bot-davl-vozduh-left-mpa3',
-        '.bot-davl-vozduh-right-mpa3',
-        '.bot-davl-niz-bliznii-left-mpa3',
-        '.bot-davl-niz-bliznii-right-mpa3',
-        '.bot-davl-seredina-bliznii-left-mpa3',
-        '.bot-davl-seredina-bliznii-right-mpa3',
-        '.bot-davl-seredina-dalnii-left-mpa3',
-        '.bot-davl-seredina-dalnii-right-mpa3',
-        '.bot-davl-verh-dalnii-left-mpa3',
-        '.bot-davl-verh-dalnii-right-mpa3',
-      ],
-      timeMPA: ['.bot-mpa-time'],
-    };
-
     const data = {};
 
     for (const [key, selectors] of Object.entries(categoriesNotis)) {
       data[key] = extractData(selectors, $Notis);
-    }
-
-    for (const [key, selectors] of Object.entries(categoriesPechiMpa)) {
-      data[key] = extractData(selectors, $Mpa);
     }
 
     const namedData = {
@@ -140,65 +63,6 @@ export async function fetchData() {
       'Нотис ВР2 Количество штук': data.doseVr2[3],
       'Нотис ВР2 Общий вес в тоннах': data.doseVr2[4],
       'Время записи на сервер Нотис ВР2': data.timeNotis[0],
-
-      // Печи МПА2
-      'Температура Верх регенератора левый МПА2': data.temperatureMpa2[0],
-      'Температура Верх регенератора правый МПА2': data.temperatureMpa2[1],
-      'Температура Верх ближний левый МПА2': data.temperatureMpa2[2],
-      'Температура Верх ближний правый МПА2': data.temperatureMpa2[3],
-      'Температура Верх дальний левый МПА2': data.temperatureMpa2[4],
-      'Температура Верх дальний правый МПА2': data.temperatureMpa2[5],
-      'Температура Середина ближняя левая МПА2': data.temperatureMpa2[6],
-      'Температура Середина ближняя правая МПА2': data.temperatureMpa2[7],
-      'Температура Середина дальняя левая МПА2': data.temperatureMpa2[8],
-      'Температура Середина дальняя правая МПА2': data.temperatureMpa2[9],
-      'Температура Низ ближний левый МПА2': data.temperatureMpa2[10],
-      'Температура Низ ближний правый МПА2': data.temperatureMpa2[11],
-      'Температура Низ дальний левый МПА2': data.temperatureMpa2[12],
-      'Температура Низ дальний правый МПА2': data.temperatureMpa2[13],
-      'Температура Камера смешения МПА2': data.temperatureMpa2[14],
-      'Температура Дымовой боров МПА2': data.temperatureMpa2[15],
-      'Давление Дымовой боров МПА2': data.pressureMpa2[0],
-      'Давление Воздух левый МПА2': data.pressureMpa2[1],
-      'Давление Воздух правый МПА2': data.pressureMpa2[2],
-      'Давление Низ ближний левый МПА2': data.pressureMpa2[3],
-      'Давление Низ ближний правый МПА2': data.pressureMpa2[4],
-      'Давление Середина ближняя левая МПА2': data.pressureMpa2[5],
-      'Давление Середина ближняя правая МПА2': data.pressureMpa2[6],
-      'Давление Середина дальняя левая МПА2': data.pressureMpa2[7],
-      'Давление Середина дальняя правая МПА2': data.pressureMpa2[8],
-      'Давление Верх дальний левый МПА2': data.pressureMpa2[9],
-      'Давление Верх дальний правый МПА2': data.pressureMpa2[10],
-      'Время записи на сервер МПА2': data.timeMPA[0],
-      // Печи МПА3
-      'Температура Верх регенератора левый МПА3': data.temperatureMpa3[0],
-      'Температура Верх регенератора правый МПА3': data.temperatureMpa3[1],
-      'Температура Верх ближний левый МПА3': data.temperatureMpa3[2],
-      'Температура Верх ближний правый МПА3': data.temperatureMpa3[3],
-      'Температура Верх дальний левый МПА3': data.temperatureMpa3[4],
-      'Температура Верх дальний правый МПА3': data.temperatureMpa3[5],
-      'Температура Середина ближняя левая МПА3': data.temperatureMpa3[6],
-      'Температура Середина ближняя правая МПА3': data.temperatureMpa3[7],
-      'Температура Середина дальняя левая МПА3': data.temperatureMpa3[8],
-      'Температура Середина дальняя правая МПА3': data.temperatureMpa3[9],
-      'Температура Низ ближний левый МПА3': data.temperatureMpa3[10],
-      'Температура Низ ближний правый МПА3': data.temperatureMpa3[11],
-      'Температура Низ дальний левый МПА3': data.temperatureMpa3[12],
-      'Температура Низ дальний правый МПА3': data.temperatureMpa3[13],
-      'Температура Камера смешения МПА3': data.temperatureMpa3[14],
-      'Температура Дымовой боров МПА3': data.temperatureMpa3[15],
-      'Давление Дымовой боров МПА3': data.pressureMpa3[0],
-      'Давление Воздух левый МПА3': data.pressureMpa3[1],
-      'Давление Воздух правый МПА3': data.pressureMpa3[2],
-      'Давление Низ ближний левый МПА3': data.pressureMpa3[3],
-      'Давление Низ ближний правый МПА3': data.pressureMpa3[4],
-      'Давление Середина ближняя левая МПА3': data.pressureMpa3[5],
-      'Давление Середина ближняя правая МПА3': data.pressureMpa3[6],
-      'Давление Середина дальняя левая МПА3': data.pressureMpa3[7],
-      'Давление Середина дальняя правая МПА3': data.pressureMpa3[8],
-      'Давление Верх дальний левый МПА3': data.pressureMpa3[9],
-      'Давление Верх дальний правый МПА3': data.pressureMpa3[10],
-      'Время записи на сервер МПА3': data.timeMPA[0],
     };
 
     for (const [key, value] of Object.entries(namedData)) {
