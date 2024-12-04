@@ -9,14 +9,14 @@ export const getButtonsByAction = (action) => {
         { text: 'МПА 2', callback_data: 'furnace_mpa2' },
         { text: 'МПА 3', callback_data: 'furnace_mpa3' },
       ],
-      [
-        { text: 'Сушилка 1', callback_data: 'sushilka_1' },
-        { text: 'Сушилка 2', callback_data: 'sushilka_2' },
-      ],
-      [
-        {text: 'Мельницы', callback_data: 'mill_k296'},
-        {text: 'Смоляные реактора', callback_data: 'reactor_k296'}
-      ],
+      // [
+      //   { text: 'Сушилка 1', callback_data: 'sushilka_1' },
+      //   { text: 'Сушилка 2', callback_data: 'sushilka_2' },
+      // ],
+      // [
+      //   {text: 'Мельницы', callback_data: 'mill_k296'},
+      //   {text: 'Смоляные реактора', callback_data: 'reactor_k296'}
+      // ],
       [
         { text: 'Назад', callback_data: 'back_to_main' },
       ]
