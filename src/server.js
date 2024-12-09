@@ -3,8 +3,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import mongoose from 'mongoose';
 import { config } from './config/config.js';
-import { updateValuesRoute } from './routes/updateValues.js';
-import { fetchData, fetchDataVR, fetchDataSushka } from './routes/carbon/dataFetcher.js';
+import { fetchDataNotis, fetchDataVR, fetchDataSushka } from './routes/carbon/dataFetcher.js';
 import { fetchDataMPA } from './routes/carbon/dataFetcherMpa.js';
 import { fetchDataMill, fetchDataReactorK296 } from './routes/carbon/dataFetcherK296.js';
 import { fetchDataSizod } from './routes/dataFetcherSizod.js';
@@ -70,10 +69,8 @@ process.on('unhandledRejection', (reason, promise) => {
   logErrorWithTime(reason);
 });
 
-// Регистрация маршрутов после инициализации бота
-updateValuesRoute(app);
 
-fetchData();
+fetchDataNotis();
 fetchDataVR();
 fetchDataSushka();
 fetchDataSizod();

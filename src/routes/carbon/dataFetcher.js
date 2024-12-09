@@ -1,90 +1,55 @@
 import axios from 'axios';
-import * as cheerio from 'cheerio';
-import iconv from 'iconv-lite'; // Подключаем библиотеку для преобразования кодировок
 import { FurnaceVR1, FurnaceVR2 } from '../../models/FurnanceModel.js';
 import { Sushilka1, Sushilka2 } from '../../models/SushilkaModel.js';
+import { NotisVR1, NotisVR2 } from '../../models/NotisModel.js';
 
-export async function fetchData() {
+export async function fetchDataNotis() {
   try {
-    const responseNotis = await axios.get(
-      'http://169.254.0.164/kaskad/Web_Clnt.dll/ShowPage?production/carbon/notisi/pechiVrNotisTelegram.htm',
-      { responseType: 'arraybuffer' } // Указываем тип ответа
-    );
+    // Запрашиваем данные для Notis1 и Notis2
+    const responseNotis1 = await axios.get('http://169.254.0.156:3002/api/notis1-data');
+    const responseNotis2 = await axios.get('http://169.254.0.156:3002/api/notis2-data');
 
-    // Преобразуем данные в нужную кодировку (Windows-1251)
-    const decodedDataNotis = iconv.decode(Buffer.from(responseNotis.data), 'windows-1251');
-
-    // Парсинг данных с помощью cheerio
-    const $Notis = cheerio.load(decodedDataNotis);
-
-
-    const extractData = (selectors, $) => selectors.map((selector) => $(selector).text().trim());
-
-    const categoriesNotis = {
-      doseVr1: [
-        '.bot-vr1-dose-g-min',
-        '.bot-vr1-dose-kg-h',
-        '.bot-vr1-dose-g',
-        '.bot-vr1-dose-number-pieces',
-        '.bot-vr1-total-weight-tons',
-        '.bot-vr1-test',
-      ],
-      doseVr2: [
-        '.bot-vr2-dose-g-min',
-        '.bot-vr2-dose-kg-h',
-        '.bot-vr2-dose-g',
-        '.bot-vr2-dose-number-pieces',
-        '.bot-vr2-total-weight-tons',
-        '.bot-vr2-test',
-      ],
-      timeNotis: ['.bot-vr-notis-time'],
-    };
-
-    const data = {};
-
-    for (const [key, selectors] of Object.entries(categoriesNotis)) {
-      data[key] = extractData(selectors, $Notis);
+    // Проверяем, что данные получены
+    if (!responseNotis1.data || !responseNotis2.data) {
+      console.error('Ошибка: данные notis1 или notis2 не получены или пусты');
+      return;
     }
 
-    const namedData = {
+    // Обрабатываем JSON-данные
+    const notis1Data = responseNotis1.data;
+    const notis2Data = responseNotis2.data;
 
-      // Дозаторы Нотис ВР1
-      'Нотис ВР1 Г/мин': data.doseVr1[0],
-      'Нотис ВР1 Кг/час': data.doseVr1[1],
-      'Нотис ВР1 Общий вес в граммах': data.doseVr1[2],
-      'Нотис ВР1 Количество штук': data.doseVr1[3],
-      'Нотис ВР1 Общий вес в тоннах': data.doseVr1[4],
-      'Время записи на сервер Нотис ВР1': data.timeNotis[0],
-
-      // Дозаторы Нотис ВР2
-      'Нотис ВР2 Г/мин': data.doseVr2[0],
-      'Нотис ВР2 Кг/час': data.doseVr2[1],
-      'Нотис ВР2 Общий вес в граммах': data.doseVr2[2],
-      'Нотис ВР2 Количество штук': data.doseVr2[3],
-      'Нотис ВР2 Общий вес в тоннах': data.doseVr2[4],
-      'Время записи на сервер Нотис ВР2': data.timeNotis[0],
+    // Формируем объекты с конкретными названиями полей, как в старом примере
+    const namedNotis1Data = {
+      'Нотис ВР1 Г/мин': notis1Data.data['Доза (г/мин) НОТИС1'],
+      'Нотис ВР1 Кг/час': notis1Data.data['Доза (кг/ч) НОТИС1'],
     };
 
-    for (const [key, value] of Object.entries(namedData)) {
-      try {
-        const response = await axios.post('http://169.254.6.19:3001/update-values', JSON.stringify({ [key]: value }), {
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-      } catch (error) {
-        console.error(
-          `Ошибка при отправке данных для ключа: ${key}`,
-          error.response ? error.response.data : error.message
-        );
-      }
-    }
+    const namedNotis2Data = {
+      'Нотис ВР2 Г/мин': notis2Data.data['Доза (г/мин) НОТИС2'],
+      'Нотис ВР2 Кг/час': notis2Data.data['Доза (кг/ч) НОТИС2'],
+    };
+
+    // Сохраняем данные для VR1
+    await NotisVR1.create({
+      data: namedNotis1Data,
+      timestamp: new Date(),
+    });
+
+    // Сохраняем данные для VR2
+    await NotisVR2.create({
+      data: namedNotis2Data,
+      timestamp: new Date(),
+    });
+
+    // console.log('Данные Notis1 и Notis2 успешно сохранены.');
   } catch (error) {
-    console.error('Ошибка при получении данных:', error.message);
+    console.error('Ошибка при получении данных для Notis1 и Notis2:', error.message);
   }
 }
 
-setInterval(fetchData, 10000);
+setInterval(fetchDataNotis, 30000);
+
 
 // Функция для получения и отправки данных VR1 и VR2 в формате с конкретными названиями
 export async function fetchDataVR() {

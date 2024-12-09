@@ -1,4 +1,36 @@
-export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentTime = new Date().toLocaleString()) => {
+// generateTable.js
+
+// Функция для получения последних 5 значений параметра "Кг/час" из базы данных
+export async function getLastValuesNotis(furnaceModel, parameterKey) {
+  try {
+    const results = await furnaceModel
+      .find({ key: parameterKey }) // Фильтруем по ключу (Кг/час)
+      .sort({ timestamp: -1 }) // Сортируем по времени от новых к старым
+      .limit(5); // Ограничиваем количество записей до 5
+
+    return results.map(doc => doc.value);
+  } catch (error) {
+    console.error('Ошибка при получении данных:', error.message);
+    return [];
+  }
+}
+
+// Функция для проверки статуса загрузки
+export function checkLoading(values) {
+  // Проверяем, есть ли значения
+  if (values.length === 0) {
+    return 'Загрузки нет';
+  }
+
+  // Проверяем, одинаковы ли все значения
+  const allSame = values.every(val => val === values[0]);
+
+  return allSame ? 'Загрузки нет' : 'Идет загрузка';
+}
+
+// Функция генерации таблицы дозатора
+export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, serverTimestamp) => {
+
   if (!data) return 'Нет данных для отображения.';
 
   // Функция для определения значка на основе статуса загрузки
@@ -14,7 +46,7 @@ export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentT
 
   // Форматирование данных для нотис
   const formatDose = (label, key, unit) => {
-    const value = data[key] || 'Нет данных';
+    const value = data[key] !== undefined ? data[key] : 'Нет данных';
     const icon = getStatusIcon(value, loadStatus);
     return `${icon}${label}: ${value} ${unit};`;
   };
@@ -23,17 +55,17 @@ export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentT
   const doses = [
     formatDose('Г/мин', `Нотис ВР${furnaceNumber} Г/мин`, 'г/мин'),
     formatDose('Кг/час', `Нотис ВР${furnaceNumber} Кг/час`, 'кг/час'),
-    formatDose('Общий вес в граммах', `Нотис ВР${furnaceNumber} Общий вес в граммах`, 'г'),
-    formatDose('Количество штук', `Нотис ВР${furnaceNumber} Количество штук`, 'шт.'),
-    formatDose('Общий вес в тоннах', `Нотис ВР${furnaceNumber} Общий вес в тоннах`, 'тонн'),
   ];
 
-  // Проверка времени записи на сервер с разделением даты и времени, если данные есть
-  const serverTime = data[`Время записи на сервер Нотис ВР${furnaceNumber}`]
-    ? `${data[`Время записи на сервер Нотис ВР${furnaceNumber}`].slice(0, 10)} ${data[
-        `Время записи на сервер Нотис ВР${furnaceNumber}`
-      ].slice(10)}`
-    : 'Нет данных';
+  // Форматирование времени записи на сервер из timestamp
+  let serverTime = 'Нет данных';
+  if (serverTimestamp instanceof Date) {
+    const date = serverTimestamp.toLocaleDateString('ru-RU'); // Формат даты
+    const time = serverTimestamp.toLocaleTimeString('ru-RU'); // Формат времени
+    serverTime = `${date} ${time}`;
+  } else if (typeof serverTimestamp === 'string') {
+    serverTime = serverTimestamp;
+  }
 
   // Объединение всех параметров в один массив
   const parameters = [
@@ -49,7 +81,7 @@ export const generateDoseTableNotis = (data, furnaceNumber, loadStatus, currentT
     '',
     `Статус работы нотиса: ${loadStatus}`, // Используем переданный статус
     '',
-    `Обновлено: ${currentTime.slice(0, 10)} ${currentTime.slice(10)}`, // Аналогично разделяем текущее время
+    `Обновлено: ${new Date().toLocaleString('ru-RU')}`, // Текущее время
   ];
 
   // Формирование итоговой строки

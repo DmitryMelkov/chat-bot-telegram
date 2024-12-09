@@ -1,8 +1,7 @@
 import { generateTablePechVr } from '../../generates/pechVr/generatetable.js';
 import { checkAndNotify } from '../../generates/pechVr/alarms.js';
-import { generateDoseTableNotis } from '../../generates/notis/generateTable.js';
+import { generateDoseTableNotis, getLastValuesNotis, checkLoading } from '../../generates/notis/generateTable.js';
 import { NotisVR1, NotisVR2 } from '../../../models/NotisModel.js';
-import { checkLoading, getLastValuesNotis } from '../../../routes/updateValues.js';
 import { generateTableMpa } from '../../generates/pechiMPA/generatetable.js';
 import { FurnaceMPA2, FurnaceMPA3 } from '../../../models/FurnanceMPAModel.js';
 import { handleChartGeneration } from './chartHandlers.js';
@@ -102,36 +101,72 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
     } else if (chartGenerators[action]) {
       await handleChartGeneration(bot, chatId, action);
     } else if (action.startsWith('get_dose_notis_')) {
-      const furnaceNumber = action.includes('vr1') ? 1 : 2;
-      const data = app.locals.data;
+      try {
+        // Определяем номер печи на основе действия
+        const furnaceNumber = action.includes('vr1') ? 1 : 2;
 
-      // Получаем последние 5 значений "Кг/час"
-      const lastFiveValues = await getLastValuesNotis(
-        furnaceNumber === 1 ? NotisVR1 : NotisVR2,
-        `Нотис ВР${furnaceNumber} Кг/час`
-      );
+        // Выбираем соответствующую модель для печи
+        const NotisModel = furnaceNumber === 1 ? NotisVR1 : NotisVR2;
+        const parameterKey = `Нотис ВР${furnaceNumber} Кг/час`;
 
-      // Проверяем статус загрузки нотиса
-      const loadStatus = checkLoading(lastFiveValues);
+        // Получаем последнюю запись из базы данных для получения данных дозатора
+        const latestDocument = await NotisModel.findOne().sort({ timestamp: -1 });
+        if (!latestDocument || !latestDocument.data) {
+          await bot.sendMessage(chatId, `Данные для Нотис ВР${furnaceNumber} не найдены. Попробуйте позже.`);
+          return;
+        }
 
-      // Генерация таблицы дозатора с учетом статуса работы
-      const doseTable = generateDoseTableNotis(data, furnaceNumber, loadStatus);
+        // Преобразование данных из Map в объект
+        let data;
+        if (latestDocument.data instanceof Map) {
+          data = Object.fromEntries(latestDocument.data.entries());
+        } else if (Array.isArray(latestDocument.data)) {
+          data = Object.fromEntries(latestDocument.data);
+        } else if (typeof latestDocument.data === 'object') {
+          data = latestDocument.data;
+        } else {
+          console.error('Неподдерживаемый формат данных:', latestDocument.data);
+          await bot.sendMessage(chatId, `Неподдерживаемый формат данных для Нотис ВР${furnaceNumber}.`);
+          return;
+        }
 
-      const buttonSet = [
-        [
-          { text: 'Обновить', callback_data: action },
-          { text: 'Назад', callback_data: `furnace_vr${furnaceNumber}` },
-        ],
-      ];
-      await bot.editMessageText(doseTable, {
-        chat_id: chatId,
-        message_id: query.message.message_id,
-        reply_markup: { inline_keyboard: buttonSet },
-      });
+        // Получаем последние 5 значений параметра "Кг/час" из базы данных
+        const lastFiveValues = await getLastValuesNotis(NotisModel, parameterKey);
+
+        // Логирование полученных значений для отладки
+
+        // Вычисляем loadStatus
+        const loadStatus = checkLoading(lastFiveValues);
+
+        // Получаем timestamp документа
+        const serverTimestamp = latestDocument.timestamp;
+
+        // Генерация таблицы дозатора с учетом статуса работы и времени записи на сервер
+        const doseTable = generateDoseTableNotis(data, furnaceNumber, loadStatus, serverTimestamp);
+
+        // Определяем кнопки "Обновить" и "Назад"
+        const buttonSet = [
+          [
+            { text: 'Обновить', callback_data: action },
+            { text: 'Назад', callback_data: `furnace_vr${furnaceNumber}` },
+          ],
+        ];
+
+        // Редактируем сообщение с новой таблицей и кнопками
+        await bot.editMessageText(doseTable, {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: { inline_keyboard: buttonSet },
+        });
+      } catch (error) {
+        console.error('Ошибка при обработке get_dose_notis_:', error.message);
+        await bot.sendMessage(chatId, 'Произошла ошибка при получении данных. Пожалуйста, попробуйте позже.');
+      }
+
     } else if (action.startsWith('get_params_mpa2') || action.startsWith('get_params_mpa3')) {
       const mpaNumber = action.includes('mpa2') ? 2 : 3;
       const currentTime = new Date().toLocaleString();
-      
+
       // Получаем модель данных МПА из базы данных
       const mpaModel = mpaNumber === 2 ? FurnaceMPA2 : FurnaceMPA3;
       const mpaDocument = await mpaModel.findOne().sort({ timestamp: -1 }); // Последняя запись
@@ -159,7 +194,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
-    } 
+    }
     else if (action.startsWith('get_params_sushilka')) {
       const sushilkaNumber = action.includes('sushilka1') ? 1 : 2; // Определяем номер сушилки
       const currentTime = new Date().toLocaleString();
@@ -194,7 +229,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
       const currentTime = new Date().toLocaleString();
 
       // Получаем модель данных сушилки из базы данных
-      
+
       const reactorDocument = await ReactorK296.findOne().sort({ timestamp: -1 }); // Последняя запись
 
       if (!reactorDocument || !reactorDocument.data) {
@@ -218,31 +253,31 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
-    } 
+    }
     else if (action.startsWith('get_params_mill')) {
       const currentTime = new Date().toLocaleString();
-    
+
       // Получаем данные из всех моделей
       const [mill1Documents, mill2Documents, mill10bDocuments] = await Promise.all([
         Mill1.find().sort({ timestamp: -1 }),
         Mill2.find().sort({ timestamp: -1 }),
         Mill10b.find().sort({ timestamp: -1 }),
       ]);
-      
+
       const dataAllMills = {};
-      
+
       // Обработка Mill1
       const lastMill1 = mill1Documents[0];
       if (lastMill1) {
         dataAllMills['Мельница №1 (к.296)'] = Object.fromEntries(lastMill1.data);
       }
-      
+
       // Обработка Mill2
       const lastMill2 = mill2Documents[0];
       if (lastMill2) {
         dataAllMills['Мельница №2 (к.296)'] = Object.fromEntries(lastMill2.data);
       }
-    
+
       // Обработка Mill10b (все параметры в одном документе)
       const mill10bConfig = {
         'Мельница YGM-9517 (к.10б)': [
@@ -260,14 +295,14 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
           'Поперечная вибрация YCVOK-130',
           'Осевая вибрация YCVOK-130',
         ],
-        
-      }; 
-      
+
+      };
+
       // Обработка Mill10b
       const lastMill10b = mill10bDocuments[0];
         if (lastMill10b) {
           const mill10bData = Object.fromEntries(lastMill10b.data);
-        
+
           Object.keys(mill10bConfig).forEach((millName) => {
             const parameters = mill10bConfig[millName];
             dataAllMills[millName] = {};
@@ -277,9 +312,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
             });
           });
       }
- 
-      
-    
+
       // Генерация таблицы
       const table = generateTableMill(dataAllMills, currentTime);
       const buttonSet = [
@@ -288,7 +321,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
           { text: 'Назад', callback_data: 'mill_k296' },
         ],
       ];
-    
+
       // Отправляем обновлённое сообщение
       await bot.editMessageText(table, {
         chat_id: chatId,
