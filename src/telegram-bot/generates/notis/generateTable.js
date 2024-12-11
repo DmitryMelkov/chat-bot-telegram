@@ -3,12 +3,26 @@
 // Функция для получения последних 5 значений параметра "Кг/час" из базы данных
 export async function getLastValuesNotis(furnaceModel, parameterKey) {
   try {
+    // Ищем документы, сортируем по времени и ограничиваем количество
     const results = await furnaceModel
-      .find({ key: parameterKey }) // Фильтруем по ключу (Кг/час)
-      .sort({ timestamp: -1 }) // Сортируем по времени от новых к старым
-      .limit(5); // Ограничиваем количество записей до 5
+      .find({})
+      .sort({ timestamp: -1 })
+      .limit(5);
+    // Извлекаем значения по ключу из объекта `data` (включая преобразование Map в объект)
+    const values = results.map(doc => {
+      let data;
+      // Преобразование Map в объект
+      if (doc.data instanceof Map) {
+        data = Object.fromEntries(doc.data.entries());
+      } else {
+        data = doc.data;
+      }
+      // Возвращаем значение параметра или null, если ключ отсутствует
+      return data?.[parameterKey] || null;
+    });
 
-    return results.map(doc => doc.value);
+
+    return values;
   } catch (error) {
     console.error('Ошибка при получении данных:', error.message);
     return [];
@@ -17,12 +31,11 @@ export async function getLastValuesNotis(furnaceModel, parameterKey) {
 
 // Функция для проверки статуса загрузки
 export function checkLoading(values) {
-  // Проверяем, есть ли значения
+
   if (values.length === 0) {
     return 'Загрузки нет';
   }
 
-  // Проверяем, одинаковы ли все значения
   const allSame = values.every(val => val === values[0]);
 
   return allSame ? 'Загрузки нет' : 'Идет загрузка';
