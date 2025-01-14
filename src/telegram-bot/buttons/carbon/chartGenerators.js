@@ -64,7 +64,14 @@ import {
   generateVibrationChartYCVOK130,
 } from '../../generates/mill/generateCharts.js';
 
-import { generateLevelChartReactorK296, generateTemperatureChartReactorK296 } from '../../generates/reactor/generateCharts.js';
+import {
+  generateLevelChartReactorK296,
+  generateTemperatureChartReactorK296,
+} from '../../generates/reactor/generateCharts.js';
+import {
+  generateConsumptionChartEnergyResources,
+  generatePressureChartEnergyResources,
+} from '../../generates/energyResources/generateCharts.js';
 
 export const chartGenerators = {
   // Для ВР1
@@ -151,4 +158,7 @@ chartGenerators['chart_vibration_sbm3'] = (params) => generateVibrationChartSBM3
 chartGenerators['chart_vibration_ycvok130'] = (params) => generateVibrationChartYCVOK130(params);
 
 chartGenerators['chart_temperature_reactor'] = (params) => generateTemperatureChartReactorK296(params);
-chartGenerators['chart_level_reactor'] = (params) => generateLevelChartReactorK296 (params);
+chartGenerators['chart_level_reactor'] = (params) => generateLevelChartReactorK296(params);
+
+chartGenerators['chart_pressure_par_energy_resources_carbon'] = (params) => generatePressureChartEnergyResources(params);
+chartGenerators['chart_consumption_par_energy_resources_carbon'] = (params) => generateConsumptionChartEnergyResources(params);

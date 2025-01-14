@@ -426,34 +426,19 @@ export const getButtonsByAction = (action) => {
     ],
 
     charts_energy_resources_carbon: [
-      [{ text: 'Давление пара', callback_data: 'chart_pressure_par_energy_resources_carbon' }],
-      [{ text: 'Расход пара', callback_data: 'chart_consumption_par_energy_resources_carbon' }],
-      [{ text: 'Назад', callback_data: 'energy_resources' }],
-    ],
-    chart_pressure_par_energy_resources_carbon: [
       [
-        { text: 'За 1 час', callback_data: 'chart_pressure_par_energy_resources_carbon_Hour' },
-        { text: 'За 12 часов', callback_data: 'chart_pressure_par_energy_resources_carbon_Twelve' },
+        { text: 'Давление пара', callback_data: 'chart_pressure_par_energy_resources_carbon' },
+        { text: 'Расход пара', callback_data: 'chart_consumption_par_energy_resources_carbon' },
       ],
-      [
-        { text: 'За 24 часа', callback_data: 'chart_pressure_par_energy_resources_carbon_Day' },
-        { text: 'Назад', callback_data: 'charts_energy_resources' },
-      ],
-    ],
-    chart_consumption_par_energy_resources_carbon: [
-      [
-        { text: 'За 1 час', callback_data: 'chart_consumption_par_energy_resources_carbon_Hour' },
-        { text: 'За 12 часов', callback_data: 'chart_consumption_par_energy_resources_carbon_Twelve' },
-      ],
-      [
-        { text: 'За 24 часа', callback_data: 'chart_consumption_par_energy_resources_carbon_Day' },
-        { text: 'Назад', callback_data: 'charts_energy_resources' },
-      ],
+
+      [{ text: 'Назад', callback_data: 'energy_resources_carbon' }],
     ],
     charts_archive_energy_resources_carbon: [
-      [{ text: 'Давление пара', callback_data: 'archive_pressure_par_energy_resources_carbon' }],
-      [{ text: 'Расход пара', callback_data: 'archive_consumption_par_energy_resources_carbon' }],
-      [{ text: 'Назад', callback_data: 'energy_resources' }],
+      [
+        { text: 'Давление пара', callback_data: 'archive_pressure_par_energy_resources_carbon' },
+        { text: 'Расход пара', callback_data: 'archive_consumption_par_energy_resources_carbon' },
+      ],
+      [{ text: 'Назад', callback_data: 'energy_resources_carbon' }],
     ],
     back_to_production: [
       [

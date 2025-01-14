@@ -6,6 +6,7 @@ import { FurnaceMPA2, FurnaceMPA3 } from '../../../models/FurnanceMPAModel.js';
 import { Sushilka1, Sushilka2 } from '../../../models/SushilkaModel.js'; // Для сушилок
 import { Mill1, Mill2, Mill10b } from '../../../models/MillModel.js'; // Модели мельниц
 import { ReactorK296 } from '../../../models/ReactorModel.js';
+import { generateConsumptionChartEnergyResources, generatePressureChartEnergyResources } from '../../generates/energyResources/generateCharts.js';
 
 export const handleChartGeneration = async (bot, chatId, action) => {
   const generateChart = chartGenerators[action];
@@ -40,7 +41,6 @@ export const handleChartGeneration = async (bot, chatId, action) => {
       if (!document || !document.data) {
         throw new Error(`Данные для МПА${equipmentNumber} отсутствуют.`);
       }
-
     } else if (action.includes('sushilka1') || action.includes('sushilka2')) {
       equipmentNumber = action.includes('sushilka1') ? 1 : 2;
       model = equipmentNumber === 1 ? Sushilka1 : Sushilka2;
@@ -51,6 +51,16 @@ export const handleChartGeneration = async (bot, chatId, action) => {
       }
 
       data = Object.fromEntries(document.data);
+    } else if (action.includes('energy_resources')) {
+      if (action === 'chart_pressure_par_energy_resources_carbon') {
+        data = await generatePressureChartEnergyResources();
+        equipmentType = 'Энергоресурсы';
+      } else if (action === 'chart_consumption_par_energy_resources_carbon') {
+        data = await generateConsumptionChartEnergyResources();
+        equipmentType = 'Энергоресурсы';
+      } else {
+        throw new Error('Неверный тип графика для энергоресурсов.');
+      }
     } else if (action.includes('reactor')) {
       equipmentType = 'Смоляных реакторов';
 
@@ -149,6 +159,7 @@ export const handleChartGeneration = async (bot, chatId, action) => {
       level: 'уровня',
       vibration: 'вибрации',
       dose: 'Дозы (Кг/час)',
+      consumption: 'расхода (т/ч)', // Добавлено для расхода
     };
 
     const chartType = Object.keys(chartTypeMap).find((key) => action.includes(key))
@@ -176,7 +187,9 @@ export const handleChartGeneration = async (bot, chatId, action) => {
         : equipmentType === 'Сушилки'
         ? `charts_sushilka${equipmentNumber}`
         : equipmentType === 'Смоляных реакторов'
-        ? `charts_reactor`
+        ? 'charts_reactor'
+        : equipmentType === 'Энергоресурсы' // Обработка для энергоресурсов
+        ? 'charts_energy_resources_carbon'
         : 'charts_mill'
     );
     await sendMessageWithButtons(bot, chatId, 'Выберите следующий график или вернитесь назад:', buttonSet);
