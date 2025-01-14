@@ -9,6 +9,7 @@ import { fetchDataMill, fetchDataReactorK296 } from './routes/carbon/dataFetcher
 import { fetchDataSizod } from './routes/dataFetcherSizod.js';
 import createTelegramBot from './telegram-bot/telegramBot.js';
 import fs from 'fs';
+import { fetchDataUzliUcheta } from './routes/carbon/dataFetcherEnergyResources.js';
 
 const app = express();
 const PORT = config.PORT;
@@ -69,7 +70,6 @@ process.on('unhandledRejection', (reason, promise) => {
   logErrorWithTime(reason);
 });
 
-
 fetchDataNotis();
 fetchDataVR();
 fetchDataSushka();
@@ -77,6 +77,7 @@ fetchDataSizod();
 fetchDataMill();
 fetchDataReactorK296();
 fetchDataMPA();
+fetchDataUzliUcheta();
 
 // Обработка ошибок маршрутов и других middleware
 app.use((err, req, res, next) => {
@@ -86,6 +87,6 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   const timeStamp = new Date().toLocaleString();
-  console.log(`[${timeStamp}] Server is running on http://169.254.6.19:${PORT}`);
-  // console.log(`[${timeStamp}] Server is running on http://169.254.0.167:${PORT}`);
+  // console.log(`[${timeStamp}] Server is running on http://169.254.6.19:${PORT}`);
+  console.log(`[${timeStamp}] Server is running on http://169.254.0.167:${PORT}`);
 });

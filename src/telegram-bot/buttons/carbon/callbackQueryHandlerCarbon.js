@@ -14,6 +14,16 @@ import { generateTableMill } from '../../generates/mill/generatetable.js';
 import { Mill1, Mill2, Mill10b } from '../../../models/MillModel.js';
 import { ReactorK296 } from '../../../models/ReactorModel.js';
 import { generateTableReactor } from '../../generates/reactor/generatetable.js';
+import {
+  imDD569Model,
+  imDD576Model,
+  imDD923Model,
+  imDD924Model,
+  imDD972Model,
+  imDD973Model,
+  imDE093Model,
+} from '../../../models/EnergyResourcesModel.js';
+import { generateEnergyResourcesTable } from '../../generates/energyResources/generatetable.js';
 
 export const handleCallbackQueryCarbon = async (bot, app, query) => {
   const chatId = query.message.chat.id;
@@ -162,7 +172,6 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         console.error('Ошибка при обработке get_dose_notis_:', error.message);
         await bot.sendMessage(chatId, 'Произошла ошибка при получении данных. Пожалуйста, попробуйте позже.');
       }
-
     } else if (action.startsWith('get_params_mpa2') || action.startsWith('get_params_mpa3')) {
       const mpaNumber = action.includes('mpa2') ? 2 : 3;
       const currentTime = new Date().toLocaleString();
@@ -194,8 +203,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
-    }
-    else if (action.startsWith('get_params_sushilka')) {
+    } else if (action.startsWith('get_params_sushilka')) {
       const sushilkaNumber = action.includes('sushilka1') ? 1 : 2; // Определяем номер сушилки
       const currentTime = new Date().toLocaleString();
 
@@ -253,8 +261,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
-    }
-    else if (action.startsWith('get_params_mill')) {
+    } else if (action.startsWith('get_params_mill')) {
       const currentTime = new Date().toLocaleString();
 
       // Получаем данные из всех моделей
@@ -285,32 +292,26 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
           'Поперечная вибрация YGM-9517',
           'Осевая вибрация YGM-9517',
         ],
-        'Мельница ШБМ №3 (к.10б)': [
-          'Вертикальная вибрация ШБМ3',
-          'Поперечная вибрация ШБМ3',
-          'Осевая вибрация ШБМ3',
-        ],
+        'Мельница ШБМ №3 (к.10б)': ['Вертикальная вибрация ШБМ3', 'Поперечная вибрация ШБМ3', 'Осевая вибрация ШБМ3'],
         'Мельница YCVOK-130 (к.10б)': [
           'Фронтальная вибрация YCVOK-130',
           'Поперечная вибрация YCVOK-130',
           'Осевая вибрация YCVOK-130',
         ],
-
       };
 
       // Обработка Mill10b
       const lastMill10b = mill10bDocuments[0];
-        if (lastMill10b) {
-          const mill10bData = Object.fromEntries(lastMill10b.data);
+      if (lastMill10b) {
+        const mill10bData = Object.fromEntries(lastMill10b.data);
 
-          Object.keys(mill10bConfig).forEach((millName) => {
-            const parameters = mill10bConfig[millName];
-            dataAllMills[millName] = {};
-            parameters.forEach((param) => {
-              dataAllMills[millName][param] =
-                mill10bData[param] !== undefined ? mill10bData[param] : 'Нет данных';
-            });
+        Object.keys(mill10bConfig).forEach((millName) => {
+          const parameters = mill10bConfig[millName];
+          dataAllMills[millName] = {};
+          parameters.forEach((param) => {
+            dataAllMills[millName][param] = mill10bData[param] !== undefined ? mill10bData[param] : 'Нет данных';
           });
+        });
       }
 
       // Генерация таблицы
@@ -328,8 +329,78 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         message_id: query.message.message_id,
         reply_markup: { inline_keyboard: buttonSet },
       });
-    }
-    else {
+    } else if (action.startsWith('get_params_energy_resources_carbon')) {
+      const currentTime = new Date().toLocaleString();
+
+      try {
+        // Получаем последние записи из всех моделей
+        const [
+          de093Document,
+          dd972Document,
+          dd973Document,
+          dd576Document,
+          dd569Document,
+          dd923Document,
+          dd924Document,
+        ] = await Promise.all([
+          imDE093Model.findOne().sort({ lastUpdated: -1 }),
+          imDD972Model.findOne().sort({ lastUpdated: -1 }),
+          imDD973Model.findOne().sort({ lastUpdated: -1 }),
+          imDD576Model.findOne().sort({ lastUpdated: -1 }),
+          imDD569Model.findOne().sort({ lastUpdated: -1 }),
+          imDD923Model.findOne().sort({ lastUpdated: -1 }),
+          imDD924Model.findOne().sort({ lastUpdated: -1 }),
+        ]);
+
+        // Проверяем наличие данных
+        const allDocuments = [
+          { document: de093Document, name: 'DE093' },
+          { document: dd972Document, name: 'DD972' },
+          { document: dd973Document, name: 'DD973' },
+          { document: dd576Document, name: 'DD576' },
+          { document: dd569Document, name: 'DD569' },
+          { document: dd923Document, name: 'DD923' },
+          { document: dd924Document, name: 'DD924' },
+        ];
+
+        const data = {};
+
+        for (const { document, name } of allDocuments) {
+          if (document && document.data) {
+            data[name] = {
+              device: name,
+              data: Object.fromEntries(document.data),
+              lastUpdated: document.lastUpdated.toLocaleString(),
+            };
+          } else {
+            data[name] = {
+              device: name,
+              data: {},
+              lastUpdated: 'Нет данных',
+            };
+          }
+        }
+
+        // Генерация таблицы
+        const table = generateEnergyResourcesTable(data, currentTime);
+        const buttonSet = [
+          [
+            { text: 'Обновить', callback_data: action },
+            { text: 'Назад', callback_data: 'energy_resources_carbon' },
+          ],
+        ];
+
+        // Отправляем обновлённое сообщение
+        await bot.editMessageText(table, {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: { inline_keyboard: buttonSet },
+        });
+      } catch (error) {
+        console.error('Ошибка при получении параметров энергоресурсов:', error);
+        await bot.sendMessage(chatId, 'Произошла ошибка при получении данных. Пожалуйста, попробуйте позже.');
+      }
+    } else {
       const actionMap = {
         furnace_vr1: 'Печь карбонизации №1',
         furnace_vr2: 'Печь карбонизации №2',
@@ -339,6 +410,7 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
         sushilka_2: 'Сушилка №2',
         mill_k296: 'Мельницы к.296 и к.10б',
         reactor_k296: 'Смоляные реактора к.296',
+        energy_resources: 'Энергоресурсы',
         back_to_main: 'Выберите интересующую опцию:',
       };
 

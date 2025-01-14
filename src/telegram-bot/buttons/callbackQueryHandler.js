@@ -24,7 +24,8 @@ export const handleCallbackQuery = async (bot, app, query) => {
     action.startsWith('archive_') ||
     action.includes('sushilka') ||
     action.includes('mill') ||
-    action.includes('reactor')
+    action.includes('reactor') ||
+    action.includes('energy_resources_carbon')
   ) {
     await handleCallbackQueryCarbon(bot, app, query);
     return;
@@ -41,6 +42,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
       sushilka_2: 'Сушилка №2',
       mill_k296: 'Мельницы к.296 и к.10б',
       reactor_k296: 'Смоляные реактора к.296',
+      energy_resources_carbon: 'Энергоресурсы карбон',
       back_to_main: 'Выберите интересующую опцию:',
     };
 
