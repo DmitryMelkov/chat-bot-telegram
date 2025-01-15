@@ -9,27 +9,18 @@ import {
 } from '../../../models/EnergyResourcesModel.js';
 import { createChartConfig, renderChartToBuffer } from '../../chartConfig.js';
 
-const generateEnergyChart = async (
-  models,
-  keys,
-  labels,
-  yAxisTitle,
-  chartTitle,
-  yMin,
-  yMax,
-  yAxisStep,
-  timeRangeInHours
-) => {
-  const currentTime = new Date();
-  const timeRangeInMillis = timeRangeInHours * 60 * 60 * 1000;
-  const timeAgo = new Date(currentTime.getTime() - timeRangeInMillis);
+const generateEnergyChart = async (models, keys, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep, userDate) => {
+  // Разбиваем пользовательскую дату
+  const [day, month, year] = userDate.split('.').map(Number);
+  const startOfDay = new Date(year, month - 1, day, 0, 0, 0, 0); // Начало дня
+  const endOfDay = new Date(year, month - 1, day, 23, 59, 59, 999); // Конец дня
 
-  // Загружаем данные из всех моделей
+  // Загружаем данные из всех моделей за указанный день
   const energyDocuments = await Promise.all(
     models.map(
       (model) =>
         model
-          .find({ lastUpdated: { $gte: timeAgo } })
+          .find({ lastUpdated: { $gte: startOfDay, $lte: endOfDay } })
           .sort({ lastUpdated: 1 })
           .limit(500) // Ограничиваем количество документов
     )
@@ -85,7 +76,7 @@ const generateEnergyChart = async (
 
   // Проверяем, есть ли данные для построения графика
   if (sortedTimestamps.length === 0 || datasets.every((dataset) => dataset.every((val) => val === null))) {
-    throw new Error(`Нет данных для графика "${chartTitle}" за выбранный период времени.`);
+    throw new Error(`Нет данных для графика "${chartTitle}" за выбранный день.`);
   }
 
   // Создаем конфигурацию графика
@@ -104,8 +95,8 @@ const generateEnergyChart = async (
   return await renderChartToBuffer(config);
 };
 
-// Генерация графика давления
-const generatePressureChartEnergy = async (timeRangeInHours) => {
+// Генерация архивного графика давления
+const generatePressureChartEnergyArchive = async (userDate) => {
   const models = [imDE093Model, imDD972Model, imDD973Model, imDD576Model, imDD569Model, imDD923Model, imDD924Model];
 
   const keys = [
@@ -128,21 +119,23 @@ const generatePressureChartEnergy = async (timeRangeInHours) => {
     'МПА №3',
   ];
 
+  const titleWithDate = `График давления за ${userDate} (МПа)`;
+
   return generateEnergyChart(
     models,
     keys,
     labels,
     'Давление (МПа)',
-    'График давления за сутки (МПа)',
+    titleWithDate,
     0,
     0.5,
     0.02,
-    timeRangeInHours
+    userDate // Передаем userDate
   );
 };
 
-// Генерация графика расхода
-const generateConsumptionChartEnergy = async (timeRangeInHours) => {
+// Генерация архивного графика расхода
+const generateConsumptionChartEnergyArchive = async (userDate) => {
   const models = [imDE093Model, imDD972Model, imDD973Model, imDD576Model, imDD569Model, imDD923Model, imDD924Model];
 
   const keys = [
@@ -165,19 +158,23 @@ const generateConsumptionChartEnergy = async (timeRangeInHours) => {
     'МПА №3',
   ];
 
+  const titleWithDate = `График расхода за ${userDate} (т/ч)`;
+
   return generateEnergyChart(
     models,
     keys,
     labels,
     'Расход (т/ч)',
-    'График расхода за сутки (т/ч)',
+    titleWithDate,
     0,
     5,
     1,
-    timeRangeInHours
+    userDate // Передаем userDate
   );
 };
 
-// Экспорт функций генерации графиков
-export const generatePressureChartEnergyResources = () => generatePressureChartEnergy(24);
-export const generateConsumptionChartEnergyResources = () => generateConsumptionChartEnergy(24);
+// Экспорт функций генерации архивных графиков
+export const generatePressureChartEnergyResourcesArchive = (userDate) => generatePressureChartEnergyArchive(userDate);
+
+export const generateConsumptionChartEnergyResourcesArchive = (userDate) =>
+  generateConsumptionChartEnergyArchive(userDate);

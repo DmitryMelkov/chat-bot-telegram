@@ -24,10 +24,11 @@ import {
   generateVibrationChartArchiveYCVOK130,
 } from '../../generates/mill/generateArchives.js';
 
-import { 
-  generateLevelArchiveChartReactorK296, 
-  generateTemperatureArchiveChartReactorK296 
+import {
+  generateLevelArchiveChartReactorK296,
+  generateTemperatureArchiveChartReactorK296
 } from '../../generates/reactor/generateArchives.js';
+import { generateConsumptionChartEnergyResourcesArchive, generatePressureChartEnergyResourcesArchive } from '../../generates/energyResources/generateArchives.js';
 
 // Определяем меню для архивов графиков для Мельниц
 const charts_archive_mill = [
@@ -135,6 +136,14 @@ const charts_archive_reactor = [
   ]
 ];
 
+const charts_archive_energy_resources_carbon = [
+  [
+    { text: 'Давление пара', callback_data: 'archive_pressure_par_energy_resources_carbon' },
+    { text: 'Расход пара', callback_data: 'archive_consumption_par_energy_resources_carbon' },
+  ],
+  [{ text: 'Назад', callback_data: 'energy_resources_carbon' }],
+];
+
 export const handleTextMessage = async (bot, app, msg) => {
   const chatId = msg.chat.id;
   const userMessage = msg.text; // Дата или число, введенное пользователем
@@ -159,6 +168,9 @@ export const handleTextMessage = async (bot, app, msg) => {
       furnaceNumber = state.action.includes('sushilka1') ? 1 : 2;
       furnaceType = 'sushilka'; // Определяем тип оборудования как 'sushilka'
       menu = furnaceNumber === 1 ? charts_archive_sushilka1 : charts_archive_sushilka2;
+    } else if (state.action.includes('energy_resources_carbon')) {
+      furnaceType = 'energy_resources_carbon'; // Определяем тип как энергоресурсы
+      menu = charts_archive_energy_resources_carbon;
     }
 
     let loadingMessage;
@@ -191,9 +203,7 @@ export const handleTextMessage = async (bot, app, msg) => {
         generateChartForDate = furnaceNumber === 2
           ? () => generatePressureChartArchiveMPA2(userMessage)
           : () => generatePressureChartArchiveMPA3(userMessage);
-      } 
-      // Добавляем обработку архивных графиков для сушилок
-      else if (state.action.startsWith('archive_temperature_sushilka')) {
+      } else if (state.action.startsWith('archive_temperature_sushilka')) {
         generateChartForDate = furnaceNumber === 1
           ? () => generateTemperatureChartArchiveSushilka1(userMessage)
           : () => generateTemperatureChartArchiveSushilka2(userMessage);
@@ -222,10 +232,15 @@ export const handleTextMessage = async (bot, app, msg) => {
       } else if (state.action.startsWith('archive_level_reactor')) {
         generateChartForDate = () => generateLevelArchiveChartReactorK296(userMessage);
         menu = charts_archive_reactor;
+      } else if (state.action.startsWith('archive_pressure_par_energy_resources_carbon')) {
+        generateChartForDate = () => generatePressureChartEnergyResourcesArchive(userMessage);
+        menu = charts_archive_energy_resources_carbon;
+      } else if (state.action.startsWith('archive_consumption_par_energy_resources_carbon')) {
+        generateChartForDate = () => generateConsumptionChartEnergyResourcesArchive(userMessage);
+        menu = charts_archive_energy_resources_carbon;
       } else {
         throw new Error('Unknown action type.');
       }
-      
 
       console.log('Generating chart with:', generateChartForDate);
 
@@ -254,6 +269,10 @@ export const handleTextMessage = async (bot, app, msg) => {
         description = `Сгенерирован график вибрации за ${userMessage}.`;
       } else if (state.action.startsWith ('archive_level_reactor')) {
         description = `Сгенерирован график уровня смолы за ${userMessage}`
+      } else if (state.action.startsWith('archive_pressure_par_energy_resources_carbon')) {
+        description = `Сгенерирован график давления пара за ${userMessage}.`;
+      } else if (state.action.startsWith('archive_consumption_par_energy_resources_carbon')) {
+        description = `Сгенерирован график расхода пара за ${userMessage}.`;
       }  else {
         description = 'Генерация графика завершена.';
       }
@@ -284,17 +303,19 @@ export const handleTextMessage = async (bot, app, msg) => {
         reply_markup: {
           inline_keyboard: [
             [{ text: 'Назад', callback_data: furnaceType === 'vr'
-            ? `furnace_vr${furnaceNumber}`
-            : furnaceType === 'mpa'
-            ? `furnace_mpa${furnaceNumber}`
-            : furnaceType === 'sushilka'
-            ? `sushilka_${furnaceNumber}`
-            : furnaceType === 'mill'
-            ? 'charts_archive_mill'
-            : furnaceType === 'reactor'
-            ? 'charts_archive_reactor'
-            :'default_back_action' 
-          }],
+              ? `furnace_vr${furnaceNumber}`
+              : furnaceType === 'mpa'
+              ? `furnace_mpa${furnaceNumber}`
+              : furnaceType === 'sushilka'
+              ? `sushilka_${furnaceNumber}`
+              : furnaceType === 'mill'
+              ? 'charts_archive_mill'
+              : furnaceType === 'reactor'
+              ? 'charts_archive_reactor'
+              : furnaceType === 'energy_resources_carbon'
+              ? 'energy_resources_carbon'
+              : 'default_back_action'
+            }],
           ]
         }
       });
