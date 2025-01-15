@@ -24,40 +24,75 @@ const generateEnergyChart = async (
   const timeRangeInMillis = timeRangeInHours * 60 * 60 * 1000;
   const timeAgo = new Date(currentTime.getTime() - timeRangeInMillis);
 
+  // Загружаем данные из всех моделей
   const energyDocuments = await Promise.all(
     models.map((model) => model.find({ lastUpdated: { $gte: timeAgo } }).sort({ lastUpdated: 1 }))
   );
 
-  const combinedDocuments = energyDocuments.flat();
+  // Собираем все уникальные временные метки
+  const allTimestamps = new Set();
+  energyDocuments.forEach(docs => {
+    docs.forEach(doc => {
+      allTimestamps.add(doc.lastUpdated.getTime());
+    });
+  });
 
-  if (!combinedDocuments || combinedDocuments.length === 0) {
-    throw new Error(`Нет данных для графика "${chartTitle}" за выбранный период времени.`);
-  }
+  // Преобразуем Set в массив и сортируем
+  const sortedTimestamps = Array.from(allTimestamps).sort((a, b) => a - b);
 
-  const timestamps = [];
+  // Функция для поиска ближайшего значения по временной метке
+  const findNearestValue = (docs, timestamp, key) => {
+    let nearestDoc = null;
+    let minDiff = Infinity;
+
+    for (const doc of docs) {
+      const diff = Math.abs(doc.lastUpdated.getTime() - timestamp);
+      if (diff < minDiff && doc.data.has(key)) {
+        minDiff = diff;
+        nearestDoc = doc;
+      }
+    }
+
+    return nearestDoc ? nearestDoc.data.get(key) : null;
+  };
+
+  // Интерполируем данные для каждой модели
   const datasets = keys.map(() => []);
-
-  for (const doc of combinedDocuments) {
-    const data = doc.data;
-
-    const timestamp = new Date(doc.lastUpdated);
-    timestamps.push(timestamp.toLocaleString());
+  for (let i = 0; i < sortedTimestamps.length; i++) {
+    const timestamp = sortedTimestamps[i];
 
     keys.forEach((key, index) => {
-      const value = data.get(key);
-      if (value !== undefined && value !== null) {
-        datasets[index].push(value);
-      } else {
-        datasets[index].push(null);
+      let value = null;
+      // Ищем ближайшее значение для текущей временной метки
+      for (const docs of energyDocuments) {
+        const nearestValue = findNearestValue(docs, timestamp, key);
+        if (nearestValue !== null) {
+          value = nearestValue;
+          break;
+        }
       }
+      datasets[index].push(value);
     });
   }
 
-  if (timestamps.length === 0 || datasets.every((dataset) => dataset.every((val) => val === null))) {
+  // Проверяем, есть ли данные для построения графика
+  if (sortedTimestamps.length === 0 || datasets.every((dataset) => dataset.every((val) => val === null))) {
     throw new Error(`Нет данных для графика "${chartTitle}" за выбранный период времени.`);
   }
 
-  const config = createChartConfig(timestamps, datasets, labels, yAxisTitle, chartTitle, yMin, yMax, yAxisStep);
+  // Создаем конфигурацию графика
+  const config = createChartConfig(
+    sortedTimestamps.map(t => new Date(t).toLocaleString()),
+    datasets,
+    labels,
+    yAxisTitle,
+    chartTitle,
+    yMin,
+    yMax,
+    yAxisStep
+  );
+
+  // Рендерим график
   return await renderChartToBuffer(config);
 };
 

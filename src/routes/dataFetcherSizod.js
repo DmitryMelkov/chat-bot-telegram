@@ -34,4 +34,4 @@ export async function fetchDataSizod() {
 }
 
 // Устанавливаем интервал обновления для DotEKO каждые 10 секунд
-setInterval(fetchDataSizod, 10000);
+// setInterval(fetchDataSizod, 10000);

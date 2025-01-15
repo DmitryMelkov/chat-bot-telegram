@@ -73,7 +73,7 @@ process.on('unhandledRejection', (reason, promise) => {
 fetchDataNotis();
 fetchDataVR();
 fetchDataSushka();
-fetchDataSizod();
+// fetchDataSizod();
 fetchDataMill();
 fetchDataReactorK296();
 fetchDataMPA();
