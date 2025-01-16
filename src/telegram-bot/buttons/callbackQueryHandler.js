@@ -1,12 +1,19 @@
 import { getButtonsByAction } from './carbon/buttonSets.js';
 import { handleCallbackQuerySizod } from './sizod/callbackQueryHandlerSizod.js';
-import { handleCallbackQueryCarbon } from './carbon/callbackQueryHandlerCarbon.js'; // Новый обработчик карбона
+import { handleCallbackQueryCarbon } from './carbon/callbackQueryHandlerCarbon.js';
+import { handleCallbackQueryUtvh } from './utvh/callbackQueryHandlerUtvh.js';
 
 export const handleCallbackQuery = async (bot, app, query) => {
   const chatId = query.message.chat.id;
   const action = query.data;
 
   await bot.answerCallbackQuery(query.id);
+
+  // Если действие связано с Сизод
+  if (action.startsWith('utvh_') || action.includes('utvh')) {
+    await handleCallbackQueryUtvh(bot, app, query);
+    return;
+  }
 
   // Если действие связано с Сизод
   if (action.startsWith('sizod_') || action.includes('sizod')) {
@@ -59,4 +66,3 @@ export const handleCallbackQuery = async (bot, app, query) => {
     await bot.sendMessage(chatId, 'Произошла ошибка при выполнении вашего запроса. Пожалуйста, попробуйте позже.');
   }
 };
-

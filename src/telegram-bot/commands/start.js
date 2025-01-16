@@ -7,6 +7,7 @@ const startMessage = (bot, chatId, command) => {
       [
         { text: 'Карбон', callback_data: 'production_carbon' },
         { text: 'Сизод', callback_data: 'production_sizod' },
+        { text: 'УТВХ', callback_data: 'production_utvh' },
       ],
     ]);
   }
