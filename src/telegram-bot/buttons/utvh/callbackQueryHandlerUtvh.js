@@ -113,9 +113,35 @@ export const handleCallbackQueryUtvh = async (bot, app, query) => {
         return;
       }
 
-      // Генерируем график
-      const chartBuffer = await chartFunction();
-      await bot.sendPhoto(chatId, chartBuffer);
+      // Отправляем сообщение о генерации графика
+      const preloadMessage = await bot.sendMessage(chatId, 'Генерация графика, пожалуйста, подождите...');
+
+      try {
+        // Генерируем график
+        const chartBuffer = await chartFunction();
+
+        if (chartBuffer) {
+          // Отправляем график
+          await bot.sendPhoto(chatId, chartBuffer, {
+            caption: `График для Котла ${kotelNumber} (${timeRange})`,
+          });
+        } else {
+          // Если график не удалось сгенерировать
+          await bot.sendMessage(chatId, 'Не удалось сгенерировать график. Попробуйте позже.');
+        }
+      } catch (error) {
+        console.error(`Ошибка генерации графика:`, error);
+        await bot.sendMessage(chatId, 'Произошла ошибка при генерации графика. Пожалуйста, попробуйте позже.');
+      } finally {
+        // Удаляем сообщение о генерации
+        await bot.deleteMessage(chatId, preloadMessage.message_id);
+      }
+
+      // Добавляем кнопки возврата
+      const returnButtonSet = getButtonsByActionUtvh(`utvh_kotel_${kotelNumber}_${isLevel ? 'level' : 'pressure'}`);
+      await bot.sendMessage(chatId, 'Выберите другой график:', {
+        reply_markup: { inline_keyboard: returnButtonSet },
+      });
     } else if (action === 'production_utvh') {
       const buttonSet = getButtonsByActionUtvh(action);
       await bot.editMessageText('Выберите котел:', {

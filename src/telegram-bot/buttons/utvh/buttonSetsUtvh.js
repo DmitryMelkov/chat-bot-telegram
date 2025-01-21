@@ -124,6 +124,15 @@ export const getButtonsByActionUtvh = (action) => {
         { text: 'Назад', callback_data: 'utvh_kotel_3_charts' },
       ],
     ],
+    back_to_main: [
+      [
+        { text: 'Карбон', callback_data: 'production_carbon' },
+        { text: 'Сизод', callback_data: 'production_sizod' },
+      ],
+      [
+        { text: 'УТВХ', callback_data: 'production_utvh' },
+      ]
+    ],
   };
 
   return buttons[action] || buttons.production_utvh;
