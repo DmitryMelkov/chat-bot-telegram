@@ -264,72 +264,78 @@ export const handleCallbackQueryCarbon = async (bot, app, query) => {
     } else if (action.startsWith('get_params_mill')) {
       const currentTime = new Date().toLocaleString();
 
-      // Получаем данные из всех моделей
-      const [mill1Documents, mill2Documents, mill10bDocuments] = await Promise.all([
-        Mill1.find().sort({ timestamp: -1 }),
-        Mill2.find().sort({ timestamp: -1 }),
-        Mill10b.find().sort({ timestamp: -1 }),
-      ]);
+      try {
+        // Получаем последние записи из всех моделей с ограничением
+        const [mill1Document, mill2Document, mill10bDocument] = await Promise.all([
+          Mill1.findOne().sort({ timestamp: -1 }).limit(1), // Только последний документ
+          Mill2.findOne().sort({ timestamp: -1 }).limit(1), // Только последний документ
+          Mill10b.findOne().sort({ timestamp: -1 }).limit(1), // Только последний документ
+        ]);
 
-      const dataAllMills = {};
+        const dataAllMills = {};
 
-      // Обработка Mill1
-      const lastMill1 = mill1Documents[0];
-      if (lastMill1) {
-        dataAllMills['Мельница №1 (к.296)'] = Object.fromEntries(lastMill1.data);
-      }
+        // Обработка Mill1
+        if (mill1Document) {
+          dataAllMills['Мельница №1 (к.296)'] = {};
+          for (const [key, value] of mill1Document.data) {
+            dataAllMills['Мельница №1 (к.296)'][key] = value !== undefined ? value : 'Нет данных';
+          }
+        }
 
-      // Обработка Mill2
-      const lastMill2 = mill2Documents[0];
-      if (lastMill2) {
-        dataAllMills['Мельница №2 (к.296)'] = Object.fromEntries(lastMill2.data);
-      }
+        // Обработка Mill2
+        if (mill2Document) {
+          dataAllMills['Мельница №2 (к.296)'] = {};
+          for (const [key, value] of mill2Document.data) {
+            dataAllMills['Мельница №2 (к.296)'][key] = value !== undefined ? value : 'Нет данных';
+          }
+        }
 
-      // Обработка Mill10b (все параметры в одном документе)
-      const mill10bConfig = {
-        'Мельница YGM-9517 (к.10б)': [
-          'Фронтальная вибрация YGM-9517',
-          'Поперечная вибрация YGM-9517',
-          'Осевая вибрация YGM-9517',
-        ],
-        'Мельница ШБМ №3 (к.10б)': ['Вертикальная вибрация ШБМ3', 'Поперечная вибрация ШБМ3', 'Осевая вибрация ШБМ3'],
-        'Мельница YCVOK-130 (к.10б)': [
-          'Фронтальная вибрация YCVOK-130',
-          'Поперечная вибрация YCVOK-130',
-          'Осевая вибрация YCVOK-130',
-        ],
-      };
+        // Обработка Mill10b
+        if (mill10bDocument) {
+          const mill10bConfig = {
+            'Мельница YGM-9517 (к.10б)': [
+              'Фронтальная вибрация YGM-9517',
+              'Поперечная вибрация YGM-9517',
+              'Осевая вибрация YGM-9517',
+            ],
+            'Мельница ШБМ №3 (к.10б)': ['Вертикальная вибрация ШБМ3', 'Поперечная вибрация ШБМ3', 'Осевая вибрация ШБМ3'],
+            'Мельница YCVOK-130 (к.10б)': [
+              'Фронтальная вибрация YCVOK-130',
+              'Поперечная вибрация YCVOK-130',
+              'Осевая вибрация YCVOK-130',
+            ],
+          };
 
-      // Обработка Mill10b
-      const lastMill10b = mill10bDocuments[0];
-      if (lastMill10b) {
-        const mill10bData = Object.fromEntries(lastMill10b.data);
-
-        Object.keys(mill10bConfig).forEach((millName) => {
-          const parameters = mill10bConfig[millName];
-          dataAllMills[millName] = {};
-          parameters.forEach((param) => {
-            dataAllMills[millName][param] = mill10bData[param] !== undefined ? mill10bData[param] : 'Нет данных';
+          const mill10bData = Object.fromEntries(mill10bDocument.data);
+          Object.keys(mill10bConfig).forEach((millName) => {
+            dataAllMills[millName] = {};
+            mill10bConfig[millName].forEach((param) => {
+              dataAllMills[millName][param] = mill10bData[param] !== undefined ? mill10bData[param] : 'Нет данных';
+            });
           });
+        }
+
+        // Генерация таблицы
+        const table = generateTableMill(dataAllMills, currentTime);
+        const buttonSet = [
+          [
+            { text: 'Обновить', callback_data: action },
+            { text: 'Назад', callback_data: 'mill_k296' },
+          ],
+        ];
+
+        // Отправляем обновлённое сообщение
+        await bot.editMessageText(table, {
+          chat_id: chatId,
+          message_id: query.message.message_id,
+          reply_markup: { inline_keyboard: buttonSet },
         });
+      } catch (error) {
+        console.error('Ошибка при получении параметров мельниц:', error);
+        await bot.sendMessage(chatId, 'Произошла ошибка при получении данных. Пожалуйста, попробуйте позже.');
       }
-
-      // Генерация таблицы
-      const table = generateTableMill(dataAllMills, currentTime);
-      const buttonSet = [
-        [
-          { text: 'Обновить', callback_data: action },
-          { text: 'Назад', callback_data: 'mill_k296' },
-        ],
-      ];
-
-      // Отправляем обновлённое сообщение
-      await bot.editMessageText(table, {
-        chat_id: chatId,
-        message_id: query.message.message_id,
-        reply_markup: { inline_keyboard: buttonSet },
-      });
-    } else if (action.startsWith('get_params_energy_resources_carbon')) {
+    }
+      else if (action.startsWith('get_params_energy_resources_carbon')) {
       const currentTime = new Date().toLocaleString();
 
       try {

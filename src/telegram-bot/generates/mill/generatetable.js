@@ -3,19 +3,17 @@ export const generateTableMill = (dataAllMills, currentTime) => {
     return `Нет данных для Мельниц.`;
   }
 
-  // Функция для отображения статуса данных
   const getStatusIcon = (value) => {
     return value === undefined || value === null || value === '' || value === 'Нет данных' ? '❓ ' : '✅ ';
   };
 
-  // Форматирование вибрации с проверкой данных
   const formatVibro = (label, value) => {
     const icon = getStatusIcon(value);
-    return `${icon}${label}: ${value !== undefined && value !== '' ? value + ' мм/с' : 'Нет данных'}`;
+    const displayValue = value !== undefined && value !== '' ? `${value} мм/с` : 'Нет данных';
+    return `${icon}${label}: ${displayValue}`;
   };
 
-  // Список для хранения всех строк таблицы
-  const parameters = [];
+  const output = [];
 
   const millConfig = {
     'Мельница ШБМ №3 (к.10б)': ['Вертикальная вибрация ШБМ3', 'Поперечная вибрация ШБМ3', 'Осевая вибрация ШБМ3'],
@@ -25,32 +23,24 @@ export const generateTableMill = (dataAllMills, currentTime) => {
     'Мельница №2 (к.296)': ['Фронтальная вибрация Мельница №2', 'Поперечная вибрация Мельница №2', 'Осевая вибрация Мельница №2'],
   };
 
-  // Извлекаем время записи на сервер из данных для Мельницы №1
-  const serverTime = dataAllMills['Мельница №1 (к.296)']?.['Время записи на сервер для Мельницы №1'];
+  for (const millName in millConfig) {
+    const data = dataAllMills[millName];
+    if (data) {
+      output.push(`${millName}\n\n`);
 
-  // Генерация таблицы для каждой мельницы
-  for (const [millName, data] of Object.entries(dataAllMills)) {
-    if (millName !== 'Время записи на сервер') { // Пропускаем лишний ключ
-      parameters.push(`${millName}`);
-      parameters.push('');
-    
-      // Получаем список параметров для текущей мельницы
       const vibrationKeys = millConfig[millName];
-    
-      // Добавляем параметры вибрации в таблицу
       vibrationKeys.forEach((key) => {
-        parameters.push(formatVibro(key.split(' ')[0], data[key]));
+        const label = key.split(' ')[0];
+        output.push(formatVibro(label, data[key]), '\n');
       });
-    
-      parameters.push('');
+
+      output.push('\n');
+    } else {
+      output.push(`${millName}\n\nНет данных\n\n`);
     }
   }
-  
-  // Добавляем общую информацию
-  parameters.push(`Время записи на сервер: ${serverTime || 'Нет данных'}`);
-  parameters.push('');
-  parameters.push(`Обновлено: ${currentTime.slice(0, 10)} ${currentTime.slice(10)}`); // Форматируем текущее время
 
-  // Возвращаем итоговую строку
-  return parameters.join('\n');
-}; 
+  output.push(`Обновлено: ${currentTime}\n`);
+
+  return output.join('');
+};
