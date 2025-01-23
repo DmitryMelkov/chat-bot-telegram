@@ -9,7 +9,7 @@ export const handleCallbackQuery = async (bot, app, query) => {
 
   await bot.answerCallbackQuery(query.id);
 
-  // Если действие связано с Сизод
+  // Если действие связано с УТВХ
   if (action.startsWith('utvh_') || action.includes('utvh')) {
     await handleCallbackQueryUtvh(bot, app, query);
     return;

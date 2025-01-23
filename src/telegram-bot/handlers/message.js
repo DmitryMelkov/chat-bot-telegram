@@ -1,6 +1,7 @@
 import { handleAuth } from './auth.js';
 import { handleTextMessage } from '../buttons/carbon/handleTextMessage.js';
 import { handleTextMessageSizod } from '../buttons/sizod/handleTextMessageSizod.js'; // Подключаем обработчик для Sizod
+import { handleTextMessageUtvh } from '../buttons/utvh/handleTextMessageUtvh.js'; // Подключаем обработчик для Utvh
 
 export const handleMessage = async (bot, app, msg) => {
   const chatId = msg.chat.id;
@@ -12,16 +13,25 @@ export const handleMessage = async (bot, app, msg) => {
   }
 
   // Проверка авторизации пользователя
-  if (!await handleAuth(bot, chatId, userId)) {
+  if (!(await handleAuth(bot, chatId, userId))) {
     return;
   }
 
-  // Вызов обработки сообщений для архива отчетов Sizod
+  // Получаем состояние пользователя
   const state = app.locals.userStates && app.locals.userStates[chatId];
+
+  // Обработка сообщений для архива отчетов Sizod
   if (state && state.action === 'sizod_archive_report') {
     // Если ожидается ввод даты для архива отчетов в Sizod
     await handleTextMessageSizod(bot, app, msg);
-  } else {
+  }
+  // Обработка сообщений для архивов Utvh
+  else   if (state && state.action.startsWith('utvh_archive_')) {
+    // Если ожидается ввод даты для архивов графиков Utvh
+    await handleTextMessageUtvh(bot, app, msg);
+  }
+  // Обработка всех остальных сообщений
+  else {
     // Если это другое сообщение, обрабатываем его стандартной функцией
     await handleTextMessage(bot, app, msg);
   }

@@ -4,9 +4,9 @@ import { Kotel1, Kotel2, Kotel3 } from '../../models/KotliModel.js';
 
 export async function fetchDataKotels() {
   try {
-    const responseKotel1 = await axios.get('http://169.254.7.86:3005/api/kotel1-data');
-    const responseKotel2 = await axios.get('http://169.254.7.86:3005/api/kotel2-data');
-    const responseKotel3 = await axios.get('http://169.254.7.86:3005/api/kotel3-data');
+    const responseKotel1 = await axios.get('http://169.254.6.19:3005/api/kotel1-data');
+    const responseKotel2 = await axios.get('http://169.254.6.19:3005/api/kotel2-data');
+    const responseKotel3 = await axios.get('http://169.254.6.19:3005/api/kotel3-data');
 
     if (!responseKotel1.data || !responseKotel2.data || !responseKotel3.data) {
       console.error('Ошибка: данные одного из котлов не получены или пусты');

@@ -419,31 +419,31 @@ export const getButtonsByAction = (action) => {
     energy_resources_carbon: [
       [
         { text: 'Текущие параметры', callback_data: 'get_params_energy_resources_carbon' },
-        { text: 'Графики', callback_data: 'charts_energy_resources_carbon' },
+        // { text: 'Графики', callback_data: 'charts_energy_resources_carbon' },
       ],
-      [{ text: 'Архив графиков', callback_data: 'charts_archive_energy_resources_carbon' }],
+      // [{ text: 'Архив графиков', callback_data: 'charts_archive_energy_resources_carbon' }],
       [{ text: 'Назад', callback_data: 'production_carbon' }],
     ],
 
-    charts_energy_resources_carbon: [
-      [
-        { text: 'Давление пара', callback_data: 'chart_pressure_par_energy_resources_carbon' },
-        { text: 'Расход пара', callback_data: 'chart_consumption_par_energy_resources_carbon' },
-      ],
+    // charts_energy_resources_carbon: [
+    //   [
+    //     { text: 'Давление пара', callback_data: 'chart_pressure_par_energy_resources_carbon' },
+    //     { text: 'Расход пара', callback_data: 'chart_consumption_par_energy_resources_carbon' },
+    //   ],
 
-      [{ text: 'Назад', callback_data: 'energy_resources_carbon' }],
-    ],
-    charts_archive_energy_resources_carbon: [
-      [
-        { text: 'Давление пара', callback_data: 'archive_pressure_par_energy_resources_carbon' },
-        { text: 'Расход пара', callback_data: 'archive_consumption_par_energy_resources_carbon' },
-      ],
-      [{ text: 'Назад', callback_data: 'energy_resources_carbon' }],
-    ],
+    //   [{ text: 'Назад', callback_data: 'energy_resources_carbon' }],
+    // ],
+    // charts_archive_energy_resources_carbon: [
+    //   [
+    //     { text: 'Давление пара', callback_data: 'archive_pressure_par_energy_resources_carbon' },
+    //     { text: 'Расход пара', callback_data: 'archive_consumption_par_energy_resources_carbon' },
+    //   ],
+    //   [{ text: 'Назад', callback_data: 'energy_resources_carbon' }],
+    // ],
     back_to_production: [
       [
         { text: 'Карбон', callback_data: 'production_carbon' },
-        { text: 'Сизод', callback_data: 'production_sizod' },
+        // { text: 'Сизод', callback_data: 'production_sizod' },
       ],
       [
         { text: 'УТВХ', callback_data: 'production_utvh' },
@@ -452,11 +452,9 @@ export const getButtonsByAction = (action) => {
     back_to_main: [
       [
         { text: 'Карбон', callback_data: 'production_carbon' },
-        { text: 'Сизод', callback_data: 'production_sizod' },
-      ],
-      [
         { text: 'УТВХ', callback_data: 'production_utvh' },
-      ]
+        // { text: 'Сизод', callback_data: 'production_sizod' },
+      ],      
     ],
   };
 
